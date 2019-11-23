@@ -14,7 +14,7 @@ export const TOPICS_FOR_PROXYS = [
   }
 ]
 
-export async function getContract(address: string): Promise<Contract | null> {
+export async function getContract(address: string, toAddress?: string): Promise<Contract | null> {
   const res = await fetch(`${getAPI()}?module=contract&action=getabi&address=${address}`)
   const abi = await res.json()
   const web3 = getWeb3Instance()
@@ -25,7 +25,7 @@ export async function getContract(address: string): Promise<Contract | null> {
 
   return new web3.eth.Contract(
     JSON.parse(abi.result),
-    address
+    toAddress || address
   )
 }
 
@@ -94,43 +94,44 @@ export function sanitizeABI(abi: string) {
 
 // Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
 export function typeContractMethods(editorTypes: string, contracts: Contracts) {
-  let methodTypes = 'contractMethods: any'
+  return editorTypes + Object.keys(contracts).filter(key => contracts[key].instance).map(key => {
+    const contract = contracts[key].instance
+    const contractTypes = `declare var ${contracts[key].name}: Contract & {
+    methods: {
+      ${contract.options.jsonInterface.map((method: any) => {
+      let inputs = ''
 
-  if (contracts[0]) {
-    const contract = contracts[0].instance
-    if (contract) {
-      methodTypes = `methods: {
-    ${contract!.options.jsonInterface.map((method: any) => {
-        let inputs = ''
+      if (!method.inputs) {
+        return ''
+      }
 
-        method.inputs.forEach((input: any, index: number) => {
-          if (index > 0) {
-            inputs += ', '
-          }
+      method.inputs.forEach((input: any, index: number) => {
+        if (index > 0) {
+          inputs += ', '
+        }
 
-          inputs += input.name
-            ? input.name
-            : method.inputs.length > 1
-              ? `${input.type}_${index}`
-              : input.type
+        inputs += input.name
+          ? input.name
+          : method.inputs.length > 1
+            ? `${input.type}_${index}`
+            : input.type
 
-          if (input.type.indexOf('int') !== -1) {
-            inputs += ': number'
-          } else {
-            inputs += ': string'
-          }
+        if (input.type.indexOf('int') !== -1) {
+          inputs += ': number'
+        } else {
+          inputs += ': string'
+        }
 
-          if (input.type.indexOf('[]') !== -1) {
-            inputs += `[]`
-          }
-        })
-
-        return `${method.name}: (${inputs}) => any`
+        if (input.type.indexOf('[]') !== -1) {
+          inputs += `[]`
+        }
       })
-          .join('\n')}
-  }`
-    }
-  }
 
-  return editorTypes.replace('contractMethods: any', methodTypes)
+      return `${method.name}: (${inputs}) => any`
+    }).join('\n')}
+    }`
+
+    return contractTypes
+
+  }).join('\n')
 }

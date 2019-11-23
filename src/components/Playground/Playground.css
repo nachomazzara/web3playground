@@ -1,0 +1,36 @@
+.header {
+  margin: 5px 20px;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+form {
+  display: flex;
+  align-content: center;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+}
+
+form input {
+  margin: 0 5px;
+  padding: 10px;
+  width: 260px;
+  border: 1px solid #9d9d9d;
+  border-radius: 3px;
+}
+
+form input[type='checkbox'] {
+  width: 18px;
+}
+
+.form input::placeholder {
+  opacity: 0.5;
+}
+
+.isProxy {
+  display: flex;
+  align-items: center;
+}

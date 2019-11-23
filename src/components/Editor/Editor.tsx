@@ -1,85 +1,124 @@
-import React, { PureComponent } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import MonacoEditor from 'react-monaco-editor'
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api'
 
+/* eslint import/no-webpack-loader-syntax: off */
 // @ts-ignore
 import editorTypes from '!!raw-loader!./editorTypes.d.ts'
+/* eslint import/no-webpack-loader-syntax: off */
 // @ts-ignore
 import defaultScript from '!!raw-loader!./defaultScript.js'
-
-// import { saveLastUsedCode, getLastUsedCode } from 'lib/localStorage'
 import { typeContractMethods } from 'libs/contract'
 import { getWeb3Instance } from 'libs/web3'
 import { isIOS } from 'libs/device'
 
-import { Props, State } from './types'
-
+import { Props } from './types'
+import { saveLastUsedCode, getLastUsedCode } from 'libs/localstorage'
 import './Editor.css'
+import { Contracts } from 'components/Playground/types'
 
 export const OUTPUT_HEADLINE = '/***** Output *****/\n'
 
-export default class Editor extends PureComponent<Props, State> {
-  textarea!: HTMLTextAreaElement
-  textTimeout: number = 0
+export default function Editor(props: Props) {
+  const [code, setCode] = useState(defaultScript)
+  const [copyText, setCopyText] = useState('Copy')
+  const [isRunning, setIsRunning] = useState(false)
+  const [output, setOutput] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const prevContracts = usePrevious(props.contracts)
 
-  constructor(props: Props) {
-    super(props)
+  let monacoRef = useRef<typeof monacoEditor | null>(null)
+  let textareaRef: HTMLTextAreaElement
+  let textTimeout: number = 0
 
-    this.state = {
-      code: /* getLastUsedCode(props.index) || */ defaultScript,
-      isRunning: false,
-      output: null,
-      error: null,
-      copyText: 'Copy'
+  const instanceWindowVars = useCallback(() => {
+    // @ts-ignore
+    window['web3'] = getWeb3Instance()
+
+    if (prevContracts) {
+      Object.keys(prevContracts)
+        .filter(key => prevContracts[key].instance)
+        .forEach(key => {
+          const contract = prevContracts[key]
+          delete window[contract.name]
+        })
     }
+
+    if (props.contracts) {
+      Object.keys(props.contracts)
+        .filter(key => props.contracts[key].instance)
+        .forEach(key => {
+          const contract = props.contracts[key]
+          window[contract.name] = contract.instance
+        })
+    }
+  }, [props.contracts, prevContracts])
+
+  function usePrevious(value: Contracts) {
+    const ref = useRef<Contracts>()
+    useEffect(() => {
+      ref.current = value
+    })
+    return ref.current
   }
 
-  editorWillMount = (monaco: typeof monacoEditor) => {
+  // Did Mount
+  useEffect(() => {
+    const lastUsedCode = getLastUsedCode()
+    if (lastUsedCode) {
+      setCode(lastUsedCode)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (monacoRef.current) {
+      monacoRef.current.languages.typescript.typescriptDefaults.addExtraLib(
+        typeContractMethods(editorTypes, props.contracts),
+        'index.d.ts'
+      )
+      instanceWindowVars()
+    }
+  }, [props.contracts, instanceWindowVars])
+
+  useEffect(() => () => {
+    window.clearTimeout(textTimeout)
+  })
+
+  function editorWillMount(monaco: typeof monacoEditor) {
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
-      `${typeContractMethods(editorTypes, this.props.contracts!)}\n
-      ${
-        this.props.contracts[0]
-          ? `declare var ${this.props.contracts[0].name}: Contract`
-          : ''
-      }`,
+      typeContractMethods(editorTypes, props.contracts),
       'index.d.ts'
     )
+
+    monacoRef.current = monaco
+    instanceWindowVars()
   }
 
-  editorDidMount = (
+  function editorDidMount(
     editor: monacoEditor.editor.IStandaloneCodeEditor,
     monaco: typeof monacoEditor
-  ) => {
+  ) {
     const model = editor.getModel()
     if (model && model.getModeId() === 'typescript') {
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
-        // saveLastUsedCode(this.state.code)
+        // saveLastUsedCode(state.code)
         editor.trigger('format', 'editor.action.formatDocument', null)
       })
     }
   }
 
-  componentWillUnmount() {
-    window.clearTimeout(this.textTimeout)
+  function cleanState() {
+    setIsRunning(true)
+    setOutput(null)
+    setError(null)
   }
 
-  handleExecuteCode = async () => {
-    const { code } = this.state
-    // @ts-ignore
-    const { contracts } = this.props // contract should be available when evaluating the script
-    // @ts-ignore
-    const web3 = getWeb3Instance()
-
-    if (contracts[0]) {
-      //@TODO: change it
-      window[contracts[0].name] = contracts[0].instance
-    }
-
-    // saveLastUsedCode(code, index)
+  async function handleExecuteCode() {
+    saveLastUsedCode(code)
 
     let output: string
 
-    const setState = (...values: any) => {
+    const setOutputState = (...values: any) => {
       if (output === undefined) {
         output = ''
       }
@@ -92,151 +131,150 @@ export default class Editor extends PureComponent<Props, State> {
         output += JSON.stringify(values[0], null, 2) + '\n'
       }
 
-      this.setState({ output })
+      setOutput(output)
     }
 
     try {
-      this.setState({ isRunning: true, output: null, error: null })
-      setState(
+      cleanState()
+      setOutputState(
+        // eslint-disable-next-line
         await eval(`
        (function(){
           const console = {}
 
           console.log = function() {
-            setState(...arguments)
+            setOutputState(...arguments)
           }
           ${code}
           return main()
         })()
       `)
       )
-
-      this.setState({ isRunning: false })
     } catch (e) {
-      this.setState({ error: e.stack, isRunning: false })
+      setError(e.stack)
     }
+    setIsRunning(false)
   }
 
-  handleCodeChange = (newValue: string) => {
-    this.setState({ code: newValue })
+  function handleCodeChange(newValue: string) {
+    setCode(newValue)
   }
 
-  handleResetCode = () => {
-    this.handleCodeChange(defaultScript)
+  function handleResetCode() {
+    handleCodeChange(defaultScript)
   }
 
-  handleCopy = () => {
-    this.setState({ copyText: 'Copied' })
+  function handleCopy() {
+    setCopyText('Copied')
+
     if (isIOS()) {
       const range = document.createRange()
-      range.selectNodeContents(this.textarea)
+      range.selectNodeContents(textareaRef)
       const selection = window.getSelection()
       if (selection) {
         selection.removeAllRanges()
         selection.addRange(range)
       }
-      this.textarea.setSelectionRange(0, 999999)
+      textareaRef.setSelectionRange(0, 999999)
     } else {
-      this.textarea.select()
+      textareaRef.select()
     }
+
     document.execCommand('copy')
-    this.textTimeout = window.setTimeout(
-      () => this.setState({ copyText: 'Copy' }),
-      1000
-    )
+
+    textTimeout = window.setTimeout(() => setCopyText('Copy'), 1000)
   }
 
-  handleClearOutput = () => {
-    this.setState({ output: null, error: null })
+  function handleClearOutput() {
+    setOutput(null)
+    setError(null)
   }
 
-  render() {
-    const { code, output, isRunning, error, copyText } = this.state
+  let outputValue = OUTPUT_HEADLINE
 
-    let outputValue = OUTPUT_HEADLINE
+  if (isRunning) {
+    outputValue = 'Running...'
+  } else if (output) {
+    outputValue = output
+  }
 
-    if (isRunning) {
-      outputValue = 'Running...'
-    } else if (output) {
-      outputValue = output
-    } else if (error) {
-      outputValue = error
-    }
+  if (error) {
+    outputValue += error
+  }
 
-    return (
-      <>
-        <div className="Editor">
-          <div className="code-wrapper">
-            <div className="actions">
-              <div className="col left">
-                <button onClick={this.handleExecuteCode} title="Run">
-                  <i className="icon run" />
-                  {'Run'}
-                </button>
-              </div>
-              <div className="col right">
-                <button onClick={this.handleResetCode} title="Reset">
-                  <i className="icon reset" />
-                  {'Reset'}
-                </button>
-              </div>
+  return (
+    <>
+      <div className="Editor">
+        <div className="code-wrapper">
+          <div className="actions">
+            <div className="col left">
+              <button onClick={handleExecuteCode} title="Run">
+                <i className="icon run" />
+                {'Run'}
+              </button>
             </div>
-            <MonacoEditor
-              language="typescript"
-              theme="vs-dark"
-              value={code}
-              onChange={this.handleCodeChange}
-              editorWillMount={this.editorWillMount}
-              editorDidMount={this.editorDidMount}
-              options={{
-                automaticLayout: true,
-                lineNumbers: 'off',
-                minimap: { enabled: false },
-                fontSize: 11
-              }}
-            />
-          </div>
-          <div className="output-wrapper">
-            <div className="actions">
-              <div className="col left">
-                <button onClick={this.handleCopy} title="Copy">
-                  <i className="icon copy" />
-                  {copyText}
-                </button>
-              </div>
-              <div className="col right">
-                <button onClick={this.handleClearOutput} title="Clear">
-                  <i className="icon reset" />
-                  {'Clear'}
-                </button>
-              </div>
+            <div className="col right">
+              <button onClick={handleResetCode} title="Reset">
+                <i className="icon reset" />
+                {'Reset'}
+              </button>
             </div>
-            <MonacoEditor
-              language="typescript"
-              theme="vs-dark"
-              value={outputValue}
-              options={{
-                readOnly: true,
-                automaticLayout: true,
-                lineNumbers: 'off',
-                minimap: { enabled: false },
-                fontSize: 10,
-                folding: false
-              }}
-            />
           </div>
+          <MonacoEditor
+            language="typescript"
+            theme="vs-dark"
+            value={code}
+            onChange={handleCodeChange}
+            editorWillMount={editorWillMount}
+            editorDidMount={editorDidMount}
+            options={{
+              automaticLayout: true,
+              lineNumbers: 'off',
+              minimap: { enabled: false },
+              fontSize: 11
+            }}
+          />
         </div>
-        <textarea
-          readOnly={true}
-          className="no-visible"
-          ref={textarea => {
-            if (textarea) {
-              this.textarea = textarea
-            }
-          }}
-          value={outputValue}
-        />
-      </>
-    )
-  }
+        <div className="output-wrapper">
+          <div className="actions">
+            <div className="col left">
+              <button onClick={handleCopy} title="Copy">
+                <i className="icon copy" />
+                {copyText}
+              </button>
+            </div>
+            <div className="col right">
+              <button onClick={handleClearOutput} title="Clear">
+                <i className="icon reset" />
+                {'Clear'}
+              </button>
+            </div>
+          </div>
+          <MonacoEditor
+            language="typescript"
+            theme="vs-dark"
+            value={outputValue}
+            options={{
+              readOnly: true,
+              automaticLayout: true,
+              lineNumbers: 'off',
+              minimap: { enabled: false },
+              fontSize: 10,
+              folding: false
+            }}
+          />
+        </div>
+      </div>
+      <textarea
+        readOnly={true}
+        className="no-visible"
+        ref={textarea => {
+          if (textarea) {
+            textareaRef = textarea
+          }
+        }}
+        value={outputValue}
+      />
+    </>
+  )
 }

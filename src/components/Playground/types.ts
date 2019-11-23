@@ -10,7 +10,7 @@ export type SelectedContract = {
   isProxy: boolean
 }
 
-export type Contracts = { [key: string]: SelectedContract }
+export type Contracts = { [address: string]: SelectedContract }
 
 export type State = {
   isLoading: boolean

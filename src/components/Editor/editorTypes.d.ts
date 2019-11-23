@@ -1992,4 +1992,3 @@ declare interface Contract {
 }
 
 declare var web3: Web3
-declare var contract: Contract

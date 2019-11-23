@@ -1,142 +1,176 @@
-import React, { PureComponent } from 'react'
+import React, {
+  ReactElement,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef
+} from 'react'
 
 import Loader from 'components/Loader'
 import Editor from 'components/Editor'
 import { findABIForProxy, getContract } from 'libs/contract'
-import { getWeb3Instance } from 'libs/web3'
-import { Props, State, SelectedContract } from './types'
+import { Contracts, SelectedContract } from './types'
 
 import './Playground.css'
+import { saveLastUsedContracts, getLastUsedContracts } from 'libs/localstorage'
 
-export default class Playground extends PureComponent<Props, State> {
-  web3 = getWeb3Instance()
+export default function Playground() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | ReactElement<HTMLElement> | null>(
+    null
+  )
+  const [contracts, setContracts] = useState<Contracts>({})
+  const isInitialMount = useRef(true)
 
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      isLoading: false,
-      error: null,
-      contracts: {}
+  // Did Mount
+  useEffect(() => {
+    const lastUsedContracts = getLastUsedContracts()
+    if (lastUsedContracts) {
+      setContract(lastUsedContracts as SelectedContract[])
     }
-  }
+    //@TODO: remove it
+    // eslint-disable-next-line
+  }, [])
 
-  getContract = (event: React.FormEvent<any>) => {
+  useLayoutEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+    } else {
+      const contractsToSave = Object.keys(contracts).map(key => ({
+        name: contracts[key].name,
+        address: contracts[key].address,
+        isProxy: contracts[key].isProxy
+      }))
+      saveLastUsedContracts(contractsToSave)
+    }
+  }, [contracts])
+
+  function addContract(event: React.FormEvent<any>) {
     event.preventDefault()
-
-    this.setState({ isLoading: true })
 
     const elements = event.currentTarget.form
     const contract = {}
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i]
-      if (element.name === 'isProxy') {
-        contract[element.name] = element.value === 'on'
-      } else {
-        contract[element.name] = element.value
-      }
+      contract[element.name] = element.value
     }
 
-    this.getAddress(contract as SelectedContract)
+    if (event.currentTarget.name === 'name' && contracts[contract['address']]) {
+      return setContracts({
+        ...contracts,
+        [contract['address']]: {
+          ...contracts[contract['address']],
+          name: event.currentTarget.value
+        }
+      })
+    }
+
+    if (
+      event.currentTarget.name === 'isProxy' &&
+      contracts[contract['address']]
+    ) {
+      contract[event.currentTarget.name] = !contracts[contract['address']]
+        .isProxy
+    } else if (!contracts[contract['address']]) {
+      contract['isProxy'] = false
+    }
+
+    setContract([contract] as SelectedContract[])
   }
 
-  getAddress = async (contract: SelectedContract) => {
-    this.setState({
-      isLoading: true
-    })
+  async function setContract(selectedContracts: SelectedContract[]) {
+    setIsLoading(true)
 
-    let contractInstance
+    for (let i = 0; i < selectedContracts.length; i++) {
+      const contract = selectedContracts[i]
+      let contractInstance
 
-    if (contract.isProxy) {
-      const implementationAddress = await findABIForProxy(contract.address)
-      if (implementationAddress) {
-        contractInstance = await getContract(implementationAddress)
+      if (contract.isProxy) {
+        const implementationAddress = await findABIForProxy(contract.address)
+        if (implementationAddress) {
+          contractInstance = await getContract(
+            implementationAddress,
+            contract.address
+          )
+        }
+      } else {
+        contractInstance = await getContract(contract.address)
       }
-    } else {
-      contractInstance = await getContract(contract.address)
-    }
 
-    if (contractInstance) {
-      console.log({
-        instance: contractInstance,
-        address: contract.address,
-        name: contract.name,
-        isProxy: contract.isProxy
-      })
-      this.setState({
-        isLoading: false,
-        contracts: {
-          ...this.state.contracts,
-          '0': {
+      if (contractInstance) {
+        setContracts({
+          ...contracts,
+          [contract.address]: {
             instance: contractInstance,
-            address: contract.address,
+            address: contract.address || 'contract',
             name: contract.name,
             isProxy: contract.isProxy
           }
-        }
-      })
-      // await this.setContractName()
-    } else {
-      this.setState({
-        isLoading: false,
-        error: (
+        })
+        setError(null)
+        // await this.setContractName()
+      } else {
+        setError(
           <p>
             {'No implementation found. Please contact me'}
-            <a href="https://twitter.com/nachomazzara" target="_blank">
+            <a
+              href="https://twitter.com/nachomazzara"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {'@nachomazzara'}
             </a>
           </p>
         )
-      })
+      }
     }
+    setIsLoading(false)
   }
 
-  renderContract = (contract: SelectedContract | null, key?: string) => {
+  function renderContract(contract: SelectedContract | null, key?: string) {
     return (
-      <form name={key ? key : '0'}>
+      <form key={key ? key : '0'}>
         <input
           name="address"
           type="text"
+          placeholder="contract address"
           value={contract ? contract.address : ''}
-          onChange={this.getContract}
+          onChange={addContract}
         />
         <input
           name="name"
           type="text"
-          value={contract ? contract.name : key ? `contract${key}` : 'contract'}
-          onChange={this.getContract}
+          placeholder="variable name"
+          value={contract ? contract.name : key ? `contract${key}` : ''}
+          onChange={addContract}
         />
         <div className="isProxy">
           <input
             name="isProxy"
             id="checkbox"
             type="checkbox"
-            onChange={this.getContract}
-            defaultChecked={contract ? contract.isProxy : false}
+            onChange={addContract}
+            checked={contract ? contract.isProxy : false}
           />
-          <label htmlFor="checkbox">{'Is proxy'}</label>
+          <label htmlFor="checkbox">
+            {'Upgradable contract using the proxy pattern'}
+          </label>
         </div>
       </form>
     )
   }
 
-  render() {
-    const { isLoading, contracts } = this.state
-
-    console.log(contracts)
-
-    return (
-      <div>
+  return (
+    <div>
+      {isLoading && <Loader />}
+      <div className="header">
         <h1>Web3 Playground</h1>
-        <div>
-          <h2>Contracts</h2>
-          {Object.keys(contracts).map(key =>
-            this.renderContract(contracts[key], key)
-          )}
-          {this.renderContract(null)}
-        </div>
-        <div>{isLoading ? <Loader /> : <Editor contracts={contracts} />}</div>
+        <h2>Contracts</h2>
+        {Object.keys(contracts).map(key => renderContract(contracts[key], key))}
+        {renderContract(null)}
+        {error}
       </div>
-    )
-  }
+      <Editor contracts={contracts} />
+    </div>
+  )
 }
