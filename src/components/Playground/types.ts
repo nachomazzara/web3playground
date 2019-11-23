@@ -3,13 +3,14 @@ import { Contract } from 'web3-eth-contract/types'
 
 export type Props = {}
 
-export type SelectedContracts = {
+export type SelectedContract = {
   instance: Contract
+  address: string
   name: string
   isProxy: boolean
 }
 
-export type Contracts = { [key: string]: SelectedContracts }
+export type Contracts = { [key: string]: SelectedContract }
 
 export type State = {
   isLoading: boolean

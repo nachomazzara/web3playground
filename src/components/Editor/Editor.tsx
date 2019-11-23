@@ -37,7 +37,11 @@ export default class Editor extends PureComponent<Props, State> {
   editorWillMount = (monaco: typeof monacoEditor) => {
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       `${typeContractMethods(editorTypes, this.props.contracts!)}\n
-      declare var contract0: Contract`,
+      ${
+        this.props.contracts[0]
+          ? `declare var ${this.props.contracts[0].name}: Contract`
+          : ''
+      }`,
       'index.d.ts'
     )
   }
@@ -66,7 +70,10 @@ export default class Editor extends PureComponent<Props, State> {
     // @ts-ignore
     const web3 = getWeb3Instance()
 
-    window['contract0'] = contracts[0] ? contracts[0].instance : 'aaa'
+    if (contracts[0]) {
+      //@TODO: change it
+      window[contracts[0].name] = contracts[0].instance
+    }
 
     // saveLastUsedCode(code, index)
 

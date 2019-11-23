@@ -1,13 +1,12 @@
 import React, { PureComponent } from 'react'
 
+import Loader from 'components/Loader'
 import Editor from 'components/Editor'
 import { findABIForProxy, getContract } from 'libs/contract'
 import { getWeb3Instance } from 'libs/web3'
-import { Props, State, SelectedContracts } from './types'
+import { Props, State, SelectedContract } from './types'
 
 import './Playground.css'
-
-export const OUTPUT_HEADLINE = '/***** Output *****/\n'
 
 export default class Playground extends PureComponent<Props, State> {
   web3 = getWeb3Instance()
@@ -25,6 +24,8 @@ export default class Playground extends PureComponent<Props, State> {
   getContract = (event: React.FormEvent<any>) => {
     event.preventDefault()
 
+    this.setState({ isLoading: true })
+
     const elements = event.currentTarget.form
     const contract = {}
     for (let i = 0; i < elements.length; i++) {
@@ -36,10 +37,10 @@ export default class Playground extends PureComponent<Props, State> {
       }
     }
 
-    this.getAddress(contract)
+    this.getAddress(contract as SelectedContract)
   }
 
-  getAddress = async (contract: any) => {
+  getAddress = async (contract: SelectedContract) => {
     this.setState({
       isLoading: true
     })
@@ -56,12 +57,19 @@ export default class Playground extends PureComponent<Props, State> {
     }
 
     if (contractInstance) {
+      console.log({
+        instance: contractInstance,
+        address: contract.address,
+        name: contract.name,
+        isProxy: contract.isProxy
+      })
       this.setState({
         isLoading: false,
         contracts: {
           ...this.state.contracts,
           '0': {
             instance: contractInstance,
+            address: contract.address,
             name: contract.name,
             isProxy: contract.isProxy
           }
@@ -70,6 +78,7 @@ export default class Playground extends PureComponent<Props, State> {
       // await this.setContractName()
     } else {
       this.setState({
+        isLoading: false,
         error: (
           <p>
             {'No implementation found. Please contact me'}
@@ -82,13 +91,13 @@ export default class Playground extends PureComponent<Props, State> {
     }
   }
 
-  renderContract = (contract: SelectedContracts | null, key?: string) => {
+  renderContract = (contract: SelectedContract | null, key?: string) => {
     return (
       <form name={key ? key : '0'}>
         <input
           name="address"
           type="text"
-          value={contract ? contract.instance.options.address : ''}
+          value={contract ? contract.address : ''}
           onChange={this.getContract}
         />
         <input
@@ -112,7 +121,7 @@ export default class Playground extends PureComponent<Props, State> {
   }
 
   render() {
-    const { contracts } = this.state
+    const { isLoading, contracts } = this.state
 
     console.log(contracts)
 
@@ -126,9 +135,7 @@ export default class Playground extends PureComponent<Props, State> {
           )}
           {this.renderContract(null)}
         </div>
-        <div>
-          <Editor contracts={contracts} />
-        </div>
+        <div>{isLoading ? <Loader /> : <Editor contracts={contracts} />}</div>
       </div>
     )
   }
