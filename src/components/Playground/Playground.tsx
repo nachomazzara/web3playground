@@ -16,6 +16,7 @@ import { saveLastUsedContracts, getLastUsedContracts } from 'libs/localstorage'
 
 export default function Playground() {
   const [isLoading, setIsLoading] = useState(false)
+  const [isMaximized, setIsMaximized] = useState(false)
   const [error, setError] = useState<string | ReactElement<HTMLElement> | null>(
     null
   )
@@ -160,8 +161,12 @@ export default function Playground() {
     )
   }
 
+  function handleToggleMaximizeEditor() {
+    setIsMaximized(!isMaximized)
+  }
+
   return (
-    <div>
+    <div className={`Playground ${isMaximized ? ' maximized' : ''}`}>
       {isLoading && <Loader />}
       <div className="header">
         <h1>Web3 Playground</h1>
@@ -170,7 +175,11 @@ export default function Playground() {
         {renderContract(null)}
         {error}
       </div>
-      <Editor contracts={contracts} />
+      <Editor
+        contracts={contracts}
+        isMaximized={isMaximized}
+        onChangeSize={handleToggleMaximizeEditor}
+      />
     </div>
   )
 }

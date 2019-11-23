@@ -204,10 +204,18 @@ export default function Editor(props: Props) {
 
   return (
     <>
-      <div className="Editor">
+      <div className={`Editor ${props.isMaximized ? ' maximized' : ''}`}>
         <div className="code-wrapper">
           <div className="actions">
             <div className="col left">
+              <button onClick={props.onChangeSize} title="Hide">
+                {props.isMaximized ? (
+                  <i className="icon hide" />
+                ) : (
+                  <i className="icon maximize" />
+                )}
+                {props.isMaximized ? 'Minimize' : 'Maximize'}
+              </button>
               <button onClick={handleExecuteCode} title="Run">
                 <i className="icon run" />
                 {'Run'}

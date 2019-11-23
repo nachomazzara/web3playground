@@ -8,6 +8,11 @@
   max-height: calc(100vh - 100px);
 }
 
+.Editor.maximized {
+  height: 100vh;
+  max-height: 100vh;
+}
+
 .custom-code {
   text-align: center;
 }
@@ -32,6 +37,10 @@
   height: 100%;
   border-left: 2px solid #323232;
   width: calc(50% - 2px);
+}
+
+.maximized .react-monaco-editor-container {
+  height: calc(100% - 50px) !important;
 }
 
 .actions {
@@ -136,6 +145,42 @@
   transform: rotate(135deg);
   border-bottom-color: transparent;
   border-right-color: transparent;
+}
+
+.icon.maximize {
+  color: #63aee3;
+  position: relative;
+  margin-left: 2px;
+  margin-top: 0px;
+  width: 11px;
+  height: 11px;
+  border-radius: 1px;
+  border: solid 2px currentColor;
+}
+
+.icon.maximize:before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -3px;
+  width: 5px;
+  height: 19px;
+  color: #383838;
+  background-color: currentColor;
+  transform-origin: center;
+}
+
+.icon.maximize:after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -4px;
+  width: 5px;
+  height: 19px;
+  color: #383838;
+  background-color: currentColor;
+  transform-origin: center;
+  transform: rotate(90deg);
 }
 
 .icon.copy {

@@ -1,5 +1,28 @@
+.Playground.maximized {
+  overflow: hidden;
+  max-height: 100vh;
+  position: relative;
+}
+
 .header {
   margin: 5px 20px;
+  transition: max-height 0.1s ease-in, margin 0.1s ease-in;
+  max-height: initial;
+  height: auto;
+  max-height: 100vh;
+}
+
+.Playground.maximized .header {
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  transition: max-height 0.1s ease-out, margin 0.1s ease-out;
+}
+
+.Playground.maximized .header h1,
+.Playground.maximized .header h2 {
+  margin: 0;
+  transition: max-height 0.1s ease-out, margin 0.1s ease-out;
 }
 
 h2 {

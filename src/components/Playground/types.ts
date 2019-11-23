@@ -1,7 +1,4 @@
-import { ReactElement } from 'react'
 import { Contract } from 'web3-eth-contract/types'
-
-export type Props = {}
 
 export type SelectedContract = {
   instance: Contract
@@ -11,9 +8,3 @@ export type SelectedContract = {
 }
 
 export type Contracts = { [address: string]: SelectedContract }
-
-export type State = {
-  isLoading: boolean
-  error: string | ReactElement<HTMLElement> | null
-  contracts: Contracts
-}
