@@ -1,10 +1,4 @@
-import React, {
-  ReactElement,
-  useState,
-  useEffect,
-  useLayoutEffect,
-  useRef
-} from 'react'
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
 
 import Loader from 'components/Loader'
 import Editor from 'components/Editor'
@@ -17,15 +11,13 @@ import { saveLastUsedContracts, getLastUsedContracts } from 'libs/localstorage'
 export default function Playground() {
   const [isLoading, setIsLoading] = useState(false)
   const [isMaximized, setIsMaximized] = useState(false)
-  const [error, setError] = useState<string | ReactElement<HTMLElement> | null>(
-    null
-  )
   const [contracts, setContracts] = useState<Contracts>({})
   const isInitialMount = useRef(true)
 
   // Did Mount
   useEffect(() => {
     const lastUsedContracts = getLastUsedContracts()
+    console.log('aaa')
     if (lastUsedContracts) {
       setContract(lastUsedContracts as SelectedContract[])
     }
@@ -81,10 +73,11 @@ export default function Playground() {
 
   async function setContract(selectedContracts: SelectedContract[]) {
     setIsLoading(true)
+    const newContracts: Contracts = {}
 
     for (let i = 0; i < selectedContracts.length; i++) {
       const contract = selectedContracts[i]
-      let contractInstance
+      let contractInstance = null
 
       if (contract.isProxy) {
         const implementationAddress = await findABIForProxy(contract.address)
@@ -98,20 +91,15 @@ export default function Playground() {
         contractInstance = await getContract(contract.address)
       }
 
-      if (contractInstance) {
-        setContracts({
-          ...contracts,
-          [contract.address]: {
-            instance: contractInstance,
-            address: contract.address || 'contract',
-            name: contract.name,
-            isProxy: contract.isProxy
-          }
-        })
-        setError(null)
-        // await this.setContractName()
-      } else {
-        setError(
+      newContracts[contract.address] = {
+        instance: contractInstance,
+        address: contract.address,
+        name: contract.name,
+        isProxy: contract.isProxy
+      }
+
+      if (!contractInstance) {
+        newContracts[contract.address].error = (
           <p>
             {'No implementation found. Please contact me'}
             <a
@@ -125,24 +113,36 @@ export default function Playground() {
         )
       }
     }
+    setContracts({
+      ...contracts,
+      ...newContracts
+    })
     setIsLoading(false)
   }
 
   function renderContract(contract: SelectedContract | null, key?: string) {
+    let address, name, error
+
+    if (contract) {
+      address = contract.address
+      name = contract.name
+      error = contract.error
+    }
+
     return (
       <form key={key ? key : '0'}>
         <input
           name="address"
           type="text"
           placeholder="contract address"
-          value={contract ? contract.address : ''}
+          value={address}
           onChange={addContract}
         />
         <input
           name="name"
           type="text"
           placeholder="variable name"
-          value={contract ? contract.name : key ? `contract${key}` : ''}
+          value={name}
           onChange={addContract}
         />
         <div className="isProxy">
@@ -157,6 +157,7 @@ export default function Playground() {
             {'Upgradable contract using the proxy pattern'}
           </label>
         </div>
+        {error && <p>{error}</p>}
       </form>
     )
   }
@@ -173,7 +174,6 @@ export default function Playground() {
         <h2>Contracts</h2>
         {Object.keys(contracts).map(key => renderContract(contracts[key], key))}
         {renderContract(null)}
-        {error}
       </div>
       <Editor
         contracts={contracts}
