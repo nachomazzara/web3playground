@@ -236,7 +236,7 @@ export default function Playground() {
           <div className="footer">
             <a
               target="_blank"
-              href="https://github.com/nachomazzara/web3playground"
+              href="https://github.com/nachomazzara/web3playground#how-to-use-it"
               rel="noopener noreferrer"
             >
               {'How it works 👨‍💻'}

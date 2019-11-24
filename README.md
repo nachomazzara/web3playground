@@ -4,7 +4,23 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
 ### [Try it](https://web3playground.io)
 
-_Examples:_
+[Table of content]
+
+- [How it works](#how-it-works)
+- [Examples](#examples)
+- [FAQ](#faq)
+- [Next](#next)
+
+## How it works
+
+- Paste the address of the contract you want to try.
+- Choose a name for the variable.
+- If the contract is upgradeable by using the proxy pattern, select the checkbox.
+- Code.
+
+<img width="1028" alt="Screen Shot 2019-11-24 at 19 48 21" src="https://user-images.githubusercontent.com/7549152/69502939-61ddf780-0ef3-11ea-9dc3-8ec3e5cded25.png">
+
+## Examples
 
 - Get the name of a contract:
 
@@ -15,7 +31,7 @@ _Examples:_
   }
   ```
 
-- Get owners of NFT:
+- Get NFTs owners:
 
   ```typescript
   async function main() {
@@ -54,18 +70,9 @@ _Examples:_
   }
   ```
 
-## Methods are typed!!
+### Methods are typed!!
 
 <img width="518" alt="Screen Shot 2019-11-24 at 19 42 47" src="https://user-images.githubusercontent.com/7549152/69502861-9a310600-0ef2-11ea-99f8-dc2aa11f37c0.png">
-
-## How to use it
-
-- Paste the address of the contract you want to try.
-- Choose a name for the variable.
-- If the contract is upgradeable by using the proxy pattern, select the checkbox.
-- Code.
-
-<img width="1028" alt="Screen Shot 2019-11-24 at 19 48 21" src="https://user-images.githubusercontent.com/7549152/69502939-61ddf780-0ef3-11ea-9dc3-8ec3e5cded25.png">
 
 ## FAQ
 
