@@ -40,8 +40,6 @@ export default function Playground() {
     if (lastUsedContracts) {
       loadContracts(lastUsedContracts as SelectedContract[])
     }
-    //@TODO: remove it
-    // eslint-disable-next-line
   }, [])
 
   useLayoutEffect(() => {
