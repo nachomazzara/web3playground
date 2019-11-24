@@ -1,44 +1,104 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Web3 Playground
 
-## Available Scripts
+Test your contracts by creating your custom code snippets. Web3 1.X.X ready to be used.
 
-In the project directory, you can run:
+### [Try it](https://web3playground.io)
 
-### `npm start`
+_Examples:_
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- Get the name of a contract:
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+  ```typescript
+  async function main() {
+    const name = await contract.methods.name().call()
+    return name
+  }
+  ```
 
-### `npm test`
+- Get owners of NFT:
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  ```typescript
+  async function main() {
+    const tokenIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    const owners = []
 
-### `npm run build`
+    for (let i = 0; i < tokenIds.length; i++) {
+      const owner = await contract.methods.ownerOf(i).call()
+      owners.push(owner)
+    }
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    return owners
+  }
+  ```
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+- Transfer tokens:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  ```typescript
+  async function main() {
+    const to = '0x...'
+    const value = 1e18
 
-### `npm run eject`
+    const txHash = await contract.methods.transfer(to, value).send()
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+    return txHash
+  }
+  ```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Get ETH balance:
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+  ```typescript
+  async function main() {
+    const user = '0x..'
+    const ethBalance = await web3.eth.getBalance(user)
+    return ethBalance
+  }
+  ```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## Methods are typed!!
 
-## Learn More
+<img width="518" alt="Screen Shot 2019-11-24 at 19 42 47" src="https://user-images.githubusercontent.com/7549152/69502861-9a310600-0ef2-11ea-99f8-dc2aa11f37c0.png">
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## How to use it
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Paste the address of the contract you want to try.
+- Choose a name for the variable.
+- If the contract is upgradeable by using the proxy pattern, select the checkbox.
+- Code.
+
+<img width="1028" alt="Screen Shot 2019-11-24 at 19 48 21" src="https://user-images.githubusercontent.com/7549152/69502939-61ddf780-0ef3-11ea-9dc3-8ec3e5cded25.png">
+
+## FAQ
+
+- **Is only javascript available?**
+
+  Yes, the snippet runs in the browser.
+
+- **Which proxy implementations are supported?**
+
+  So far, the ones detected by topics as:
+
+  - Event _`Upgrade(address,bytes)`_ = `0xe74baeef5988edac1159d9177ca52f0f3d68f624a1996f77467eb3ebfb316537`.
+
+  - Event _`Upgraded(address)`_: `0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b`.
+
+  - Implementation made by [OpenZeppelin](https://docs.openzeppelin.com/sdk/2.5/writing-contracts.html). Searching for the storage slot `0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3`
+
+- **Which chains are supported?**
+
+  Every RCP call is made to the network selected in your provider.
+
+- **Which wallets are supported?**
+
+  I 've tested it with a few. Also mobile. If you have a wallet and it is not supported, please let me know and I will add it.
+
+- **Can I refresh the browser?**
+
+  Yes! Contracts and code are stored at localstorage if any.
+
+- **Can I contribute?**
+
+  Yes! please, It will be awesome.
+
+## Next
+
+- Share code snippets by hosting them on IPFS

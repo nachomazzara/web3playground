@@ -11,4 +11,4 @@ export type SelectedContract = {
   error?: SelectedContractError
 }
 
-export type Contracts = { [address: string]: SelectedContract }
+export type SelectedContracts = { [address: string]: SelectedContract }

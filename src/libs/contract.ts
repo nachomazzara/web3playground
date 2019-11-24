@@ -1,15 +1,15 @@
 import { Contract } from 'web3-eth-contract/types'
 
 import { getWeb3Instance, getAPI } from './web3'
-import { Contracts } from 'components/Playground/types'
+import { SelectedContracts } from 'components/Playground/types'
 
 export const TOPICS_FOR_PROXYS = [
   {
-    topic: '0xe74baeef5988edac1159d9177ca52f0f3d68f624a1996f77467eb3ebfb316537',
+    topic: '0xe74baeef5988edac1159d9177ca52f0f3d68f624a1996f77467eb3ebfb316537', // Upgrade(address,bytes)
     indexed: 1
   },
   {
-    topic: '0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b',
+    topic: '0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b', // Upgraded(address)
     dataIndex: 1
   }
 ]
@@ -93,7 +93,7 @@ export function sanitizeABI(abi: string) {
 }
 
 // Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
-export function typeContractMethods(editorTypes: string, contracts: Contracts) {
+export function typeContractMethods(editorTypes: string, contracts: SelectedContracts) {
   return editorTypes + Object.keys(contracts).filter(key => contracts[key].instance).map(key => {
     const contract = contracts[key].instance!
     const contractTypes = `declare var ${contracts[key].name}: Contract & {
@@ -117,7 +117,7 @@ export function typeContractMethods(editorTypes: string, contracts: Contracts) {
             : input.type
 
         if (input.type.indexOf('int') !== -1) {
-          inputs += ': number'
+          inputs += ': number | string'
         } else {
           inputs += ': string'
         }

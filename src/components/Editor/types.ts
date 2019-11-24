@@ -1,8 +1,8 @@
-import { Contracts } from 'components/Playground/types'
+import { SelectedContracts } from 'components/Playground/types'
 
 
 export type Props = {
-  contracts: Contracts
+  contracts: SelectedContracts
   isMaximized: boolean
   onChangeSize: () => void
 }

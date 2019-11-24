@@ -2,8 +2,8 @@
  * ************ This is an experimental dev feature ************
  *
  * Ready to use variables:
- * - 'contract' has a web3 Contract instance ready to be used.
  * - web3
+ * - {varName} with the contract chosed
  *
  * For More info check:
  * https://web3js.readthedocs.io/en/v1.2.2/web3-eth-contract.html#web3-eth-contract
@@ -17,6 +17,8 @@
  */
 
 async function main() {
-  const name = await contract.methods.name().call()
-  return name
+  /*
+    const name = await contract.methods.name().call()
+    return name
+  */
 }

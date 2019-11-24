@@ -15,7 +15,7 @@ import { isIOS } from 'libs/device'
 import { Props } from './types'
 import { saveLastUsedCode, getLastUsedCode } from 'libs/localstorage'
 import './Editor.css'
-import { Contracts } from 'components/Playground/types'
+import { SelectedContracts } from 'components/Playground/types'
 
 export const OUTPUT_HEADLINE = '/***** Output *****/\n'
 
@@ -29,7 +29,6 @@ export default function Editor(props: Props) {
 
   let monacoRef = useRef<typeof monacoEditor | null>(null)
   let textareaRef: HTMLTextAreaElement
-  let textTimeout: number = 0
 
   const instanceWindowVars = useCallback(() => {
     // @ts-ignore
@@ -54,8 +53,8 @@ export default function Editor(props: Props) {
     }
   }, [props.contracts, prevContracts])
 
-  function usePrevious(value: Contracts) {
-    const ref = useRef<Contracts>()
+  function usePrevious(value: SelectedContracts) {
+    const ref = useRef<SelectedContracts>()
     useEffect(() => {
       ref.current = value
     })
@@ -80,10 +79,6 @@ export default function Editor(props: Props) {
     }
   }, [props.contracts, instanceWindowVars])
 
-  useEffect(() => () => {
-    window.clearTimeout(textTimeout)
-  })
-
   function editorWillMount(monaco: typeof monacoEditor) {
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       typeContractMethods(editorTypes, props.contracts),
@@ -101,7 +96,7 @@ export default function Editor(props: Props) {
     const model = editor.getModel()
     if (model && model.getModeId() === 'typescript') {
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
-        // saveLastUsedCode(state.code)
+        saveLastUsedCode(code)
         editor.trigger('format', 'editor.action.formatDocument', null)
       })
     }
@@ -182,7 +177,7 @@ export default function Editor(props: Props) {
 
     document.execCommand('copy')
 
-    textTimeout = window.setTimeout(() => setCopyText('Copy'), 1000)
+    window.setTimeout(() => setCopyText('Copy'), 1000)
   }
 
   function handleClearOutput() {

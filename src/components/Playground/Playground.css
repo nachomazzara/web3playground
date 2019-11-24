@@ -46,7 +46,7 @@ form div {
 }
 
 form div.error {
-  color: #a51c00;
+  color: #ff4e4e;
   margin-left: 5px;
   font-weight: 400;
   font-size: 14px;
@@ -59,7 +59,7 @@ form div.error p {
 
 form div.error p a {
   margin-left: 4px;
-  color: black;
+  color: #ff4e4e;
 }
 
 form input {
@@ -88,4 +88,11 @@ form input:disabled {
   display: flex;
   align-items: center;
   margin-top: 5px;
+}
+
+@media (max-width: 678px) {
+  .Playground.maximized {
+    overflow: unset;
+    max-height: 100%;
+  }
 }

@@ -4,15 +4,19 @@ import Loader from 'components/Loader'
 import Editor from 'components/Editor'
 import { findABIForProxy, getContract } from 'libs/contract'
 import { saveLastUsedContracts, getLastUsedContracts } from 'libs/localstorage'
-import { omit } from 'libs/utils'
-import { Contracts, SelectedContract, SelectedContractError } from './types'
+import { omit, filter } from 'libs/utils'
+import {
+  SelectedContracts,
+  SelectedContract,
+  SelectedContractError
+} from './types'
 
 import './Playground.css'
 
 export default function Playground() {
   const [isLoading, setIsLoading] = useState(false)
   const [isMaximized, setIsMaximized] = useState(false)
-  const [contracts, setContracts] = useState<Contracts>({})
+  const [contracts, setContracts] = useState<SelectedContracts>({})
   const isInitialMount = useRef(true)
 
   // Did Mount
@@ -64,6 +68,33 @@ export default function Playground() {
     return contract as SelectedContract
   }
 
+  function isVarNameInUse(contracts: SelectedContracts, name: string): boolean {
+    return !!Object.keys(contracts).find(key => contracts[key].name === name)
+  }
+
+  function handleNameChange(event: React.FormEvent<any>) {
+    event.preventDefault()
+
+    const newContract = fillSelectedContract(event)
+    const editedContract = contracts[newContract.address]
+
+    if (editedContract) {
+      const name = event.currentTarget.value.replace(/\s/g, '')
+      let error = null
+      if (isVarNameInUse(omit(contracts, editedContract.address), name)) {
+        error = <p>{`Variable name "${name}" is already in use`}</p>
+      }
+      setContracts({
+        ...contracts,
+        [editedContract.address]: {
+          ...editedContract,
+          name,
+          error
+        }
+      })
+    }
+  }
+
   async function handleAddressChange(
     event: React.FormEvent<any>,
     prevValue?: string
@@ -84,23 +115,6 @@ export default function Playground() {
       })
     } else {
       setContracts(omit(contracts, prevValue))
-    }
-  }
-
-  function handleNameChange(event: React.FormEvent<any>) {
-    event.preventDefault()
-
-    const newContract = fillSelectedContract(event)
-    const editedContract = contracts[newContract.address]
-
-    if (editedContract) {
-      setContracts({
-        ...contracts,
-        [editedContract.address]: {
-          ...editedContract,
-          name: event.currentTarget.value
-        }
-      })
     }
   }
 
@@ -225,7 +239,10 @@ export default function Playground() {
         {renderContract()}
       </div>
       <Editor
-        contracts={contracts}
+        contracts={filter(
+          contracts,
+          (contract: SelectedContract) => !contract.error
+        )}
         isMaximized={isMaximized}
         onChangeSize={handleToggleMaximizeEditor}
       />
