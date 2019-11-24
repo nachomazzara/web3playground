@@ -231,7 +231,18 @@ export default function Playground() {
     <div className={`Playground ${isMaximized ? ' maximized' : ''}`}>
       {isLoading && <Loader />}
       <div className="header">
-        <h1>Web3 Playground</h1>
+        <div className="title">
+          <h1>Web3 Playground</h1>
+          <div className="footer">
+            <a
+              target="_blank"
+              href="https://github.com/nachomazzara/web3playground"
+              rel="noopener noreferrer"
+            >
+              {'How it works 👨‍💻'}
+            </a>
+          </div>
+        </div>
         <h2>Contracts</h2>
         {Object.keys(contracts).map(key => renderContract(contracts[key]))}
         {renderContract()}

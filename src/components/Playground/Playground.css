@@ -12,6 +12,28 @@
   max-height: 100vh;
 }
 
+.header .title {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header .title .footer {
+  text-align: right;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.header .title .footer a {
+  color: white;
+  font-size: 14px;
+  text-decoration: none;
+  margin-left: 10px;
+}
+
 .Playground.maximized .header {
   max-height: 0;
   margin-top: 0;
@@ -73,7 +95,8 @@ form input {
 
 form input[type='checkbox'] {
   width: 18px;
-  margin-left: 2px;
+  margin-left: 5px;
+  height: 15px;
 }
 
 form input::placeholder {

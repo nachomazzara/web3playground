@@ -102,3 +102,5 @@ _Examples:_
 ## Next
 
 - Share code snippets by hosting them on IPFS
+
+[Donate ❤️](https://etherscan.com/address/0x2FFDbd3e8B682eDC3e7a9ced16Eba60423D3BFb6)
