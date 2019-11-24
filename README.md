@@ -4,14 +4,14 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
 ### [Try it](https://web3playground.io)
 
-[Table of content]
+## Table of content
 
 - [How it works](#how-it-works)
 - [Examples](#examples)
 - [FAQ](#faq)
 - [Next](#next)
 
-## How it works
+### How it works
 
 - Paste the address of the contract you want to try.
 - Choose a name for the variable.
@@ -20,7 +20,7 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
 <img width="1028" alt="Screen Shot 2019-11-24 at 19 48 21" src="https://user-images.githubusercontent.com/7549152/69502939-61ddf780-0ef3-11ea-9dc3-8ec3e5cded25.png">
 
-## Examples
+### Examples
 
 - Get the name of a contract:
 
@@ -70,11 +70,11 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
   }
   ```
 
-### Methods are typed!!
+#### Methods are typed!!
 
 <img width="518" alt="Screen Shot 2019-11-24 at 19 42 47" src="https://user-images.githubusercontent.com/7549152/69502861-9a310600-0ef2-11ea-99f8-dc2aa11f37c0.png">
 
-## FAQ
+### FAQ
 
 - **Is only javascript available?**
 
@@ -106,7 +106,7 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
   Yes! please, It will be awesome.
 
-## Next
+### Next
 
 - Share code snippets by hosting them on IPFS
 
