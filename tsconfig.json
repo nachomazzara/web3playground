@@ -3,7 +3,7 @@
     "baseUrl": "src",
     "outDir": "build/dist",
     "module": "commonjs",
-    "target": "es5",
+    "target": "es6",
     "lib": ["es2017", "dom"],
     "sourceMap": true,
     "skipLibCheck": true,
@@ -18,7 +18,8 @@
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedParameters": true,
     "noUnusedLocals": true,
-    "plugins": [{ "name": "tslint-language-service" }]
+    "plugins": [{ "name": "tslint-language-service" }],
+    "checkJs": false
   },
   "exclude": [
     "node_modules",
@@ -27,6 +28,7 @@
     "acceptance-tests",
     "webpack",
     "jest",
-    "src/setupTests.ts"
+    "src/setupTests.ts",
+    "src/components/Editor/defaultScript.js"
   ]
 }

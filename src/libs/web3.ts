@@ -63,7 +63,7 @@ export function getChains() {
 export function getNetworkNameById(id: number): string {
   const chain = getChains().find(chain => Number(chain.id) === Number(id))
 
-  return chain ? chain.value : ''
+  return chain ? chain.value : 'mainnet'
 }
 
 export function getAPI(): string {

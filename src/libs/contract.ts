@@ -1,20 +1,20 @@
 import { Contract } from 'web3-eth-contract/types'
 
 import { getWeb3Instance, getAPI } from './web3'
-import { Contracts } from 'components/Playground/types'
+import { SelectedContracts } from 'components/Playground/types'
 
 export const TOPICS_FOR_PROXYS = [
   {
-    topic: '0xe74baeef5988edac1159d9177ca52f0f3d68f624a1996f77467eb3ebfb316537',
+    topic: '0xe74baeef5988edac1159d9177ca52f0f3d68f624a1996f77467eb3ebfb316537', // Upgrade(address,bytes)
     indexed: 1
   },
   {
-    topic: '0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b',
+    topic: '0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b', // Upgraded(address)
     dataIndex: 1
   }
 ]
 
-export async function getContract(address: string): Promise<Contract | null> {
+export async function getContract(address: string, toAddress?: string): Promise<Contract | null> {
   const res = await fetch(`${getAPI()}?module=contract&action=getabi&address=${address}`)
   const abi = await res.json()
   const web3 = getWeb3Instance()
@@ -25,7 +25,7 @@ export async function getContract(address: string): Promise<Contract | null> {
 
   return new web3.eth.Contract(
     JSON.parse(abi.result),
-    address
+    toAddress || address
   )
 }
 
@@ -93,44 +93,45 @@ export function sanitizeABI(abi: string) {
 }
 
 // Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
-export function typeContractMethods(editorTypes: string, contracts: Contracts) {
-  let methodTypes = 'contractMethods: any'
+export function typeContractMethods(editorTypes: string, contracts: SelectedContracts) {
+  return editorTypes + Object.keys(contracts).filter(key => contracts[key].instance).map(key => {
+    const contract = contracts[key].instance!
+    const contractTypes = `declare var ${contracts[key].name}: Contract & {
+    methods: {
+      ${contract.options.jsonInterface.map((method: any) => {
+      let inputs = ''
 
-  if (contracts[0]) {
-    const contract = contracts[0].instance
-    if (contract) {
-      methodTypes = `methods: {
-    ${contract!.options.jsonInterface.map((method: any) => {
-        let inputs = ''
+      if (!method.inputs) {
+        return ''
+      }
 
-        method.inputs.forEach((input: any, index: number) => {
-          if (index > 0) {
-            inputs += ', '
-          }
+      method.inputs.forEach((input: any, index: number) => {
+        if (index > 0) {
+          inputs += ', '
+        }
 
-          inputs += input.name
-            ? input.name
-            : method.inputs.length > 1
-              ? `${input.type}_${index}`
-              : input.type
+        inputs += input.name
+          ? input.name
+          : method.inputs.length > 1
+            ? `${input.type}_${index}`
+            : input.type
 
-          if (input.type.indexOf('int') !== -1) {
-            inputs += ': number'
-          } else {
-            inputs += ': string'
-          }
+        if (input.type.indexOf('int') !== -1) {
+          inputs += ': number | string'
+        } else {
+          inputs += ': string'
+        }
 
-          if (input.type.indexOf('[]') !== -1) {
-            inputs += `[]`
-          }
-        })
-
-        return `${method.name}: (${inputs}) => any`
+        if (input.type.indexOf('[]') !== -1) {
+          inputs += `[]`
+        }
       })
-          .join('\n')}
-  }`
-    }
-  }
 
-  return editorTypes.replace('contractMethods: any', methodTypes)
+      return `${method.name}: (${inputs}) => any`
+    }).join('\n')}
+    }`
+
+    return contractTypes
+
+  }).join('\n')
 }

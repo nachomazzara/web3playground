@@ -8,6 +8,11 @@
   max-height: calc(100vh - 100px);
 }
 
+.Editor.maximized {
+  height: 100vh;
+  max-height: 100vh;
+}
+
 .custom-code {
   text-align: center;
 }
@@ -30,14 +35,21 @@
 
 .output-wrapper {
   height: 100%;
-  border-left: 1px solid #eaeaea;
+  border-left: 2px solid #323232;
   width: calc(50% - 2px);
 }
 
+.maximized .react-monaco-editor-container {
+  height: calc(100% - 50px) !important;
+}
+
 .actions {
-  height: 40px;
-  width: 100%;
   display: flex;
+  padding: 10px 20px;
+  background: #383838;
+  align-items: center;
+  align-content: center;
+  border-bottom: 5px solid #1d1d1d;
 }
 
 .actions .col {
@@ -64,10 +76,14 @@
   -webkit-align-items: center;
   align-items: center;
   padding: 6px 13px;
-  margin-bottom: 10px;
-  font-size: 12px;
-  border: 1px solid #d8d8d8;
-  border-radius: 3px;
+  font-size: 11px;
+  color: #e4e4e4;
+  cursor: pointer;
+  height: 25px;
+}
+
+.actions button:hover {
+  border-bottom: 1px solid #d8d8d8;
 }
 
 .actions .col.left button {
@@ -131,6 +147,42 @@
   border-right-color: transparent;
 }
 
+.icon.maximize {
+  color: #63aee3;
+  position: relative;
+  margin-left: 2px;
+  margin-top: 0px;
+  width: 11px;
+  height: 11px;
+  border-radius: 1px;
+  border: solid 2px currentColor;
+}
+
+.icon.maximize:before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -3px;
+  width: 5px;
+  height: 19px;
+  color: #383838;
+  background-color: currentColor;
+  transform-origin: center;
+}
+
+.icon.maximize:after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -4px;
+  width: 5px;
+  height: 19px;
+  color: #383838;
+  background-color: currentColor;
+  transform-origin: center;
+  transform: rotate(90deg);
+}
+
 .icon.copy {
   box-sizing: border-box;
   display: inline-block;
@@ -157,9 +209,9 @@
 .icon.copy:before {
   content: '';
   display: block;
-  left: 35%;
+  left: 25%;
   position: absolute;
-  top: 35%;
+  top: 20%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-45%, -50%);
 }
@@ -177,4 +229,23 @@
   position: absolute;
   z-index: -1;
   opacity: 0;
+}
+
+@media (max-width: 678px) {
+  .Editor,
+  .Editor.maximized {
+    height: auto;
+    max-height: 100%;
+  }
+
+  .code-wrapper {
+    width: 100%;
+    height: 500px;
+  }
+
+  .output-wrapper {
+    width: 100%;
+    height: 500px;
+    border-left: none;
+  }
 }

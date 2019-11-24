@@ -1,0 +1,121 @@
+.Playground.maximized {
+  overflow: hidden;
+  max-height: 100vh;
+  position: relative;
+}
+
+.header {
+  margin: 5px 20px;
+  transition: max-height 0.1s ease-in, margin 0.1s ease-in;
+  max-height: initial;
+  height: auto;
+  max-height: 100vh;
+}
+
+.header .title {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header .title .footer {
+  text-align: right;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.header .title .footer a {
+  color: white;
+  font-size: 14px;
+  text-decoration: none;
+  margin-left: 10px;
+}
+
+.Playground.maximized .header {
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  transition: max-height 0.1s ease-out, margin 0.1s ease-out;
+}
+
+.Playground.maximized .header h1,
+.Playground.maximized .header h2 {
+  margin: 0;
+  transition: max-height 0.1s ease-out, margin 0.1s ease-out;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+form {
+  display: flex;
+  align-content: center;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+form div {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  font-size: 12px;
+}
+
+form div.error {
+  color: #ff4e4e;
+  margin-left: 5px;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+form div.error p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+form div.error p a {
+  margin-left: 4px;
+  color: #ff4e4e;
+}
+
+form input {
+  margin: 0 5px;
+  padding: 10px;
+  width: 260px;
+  border: none;
+  border-radius: 3px;
+  height: 10px;
+}
+
+form input[type='checkbox'] {
+  width: 18px;
+  margin-left: 5px;
+  height: 15px;
+}
+
+form input::placeholder {
+  opacity: 0.7;
+}
+
+form input:disabled {
+  opacity: 0.8;
+}
+
+.isProxy {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+@media (max-width: 678px) {
+  .Playground.maximized {
+    overflow: unset;
+    max-height: 100%;
+  }
+}
