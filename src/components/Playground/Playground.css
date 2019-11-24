@@ -31,7 +31,14 @@
   color: white;
   font-size: 14px;
   text-decoration: none;
-  margin-left: 10px;
+  background: #383838;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.header .title .footer a:hover {
+  background: #4f4f4f;
 }
 
 .Playground.maximized .header {
@@ -117,5 +124,9 @@ form input:disabled {
   .Playground.maximized {
     overflow: unset;
     max-height: 100%;
+  }
+
+  .header .title .footer {
+    display: none;
   }
 }
