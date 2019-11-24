@@ -3,10 +3,11 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import Loader from 'components/Loader'
 import Editor from 'components/Editor'
 import { findABIForProxy, getContract } from 'libs/contract'
-import { Contracts, SelectedContract } from './types'
+import { saveLastUsedContracts, getLastUsedContracts } from 'libs/localstorage'
+import { omit } from 'libs/utils'
+import { Contracts, SelectedContract, SelectedContractError } from './types'
 
 import './Playground.css'
-import { saveLastUsedContracts, getLastUsedContracts } from 'libs/localstorage'
 
 export default function Playground() {
   const [isLoading, setIsLoading] = useState(false)
@@ -16,10 +17,24 @@ export default function Playground() {
 
   // Did Mount
   useEffect(() => {
+    async function loadContracts(lastUsedContracts: SelectedContract[]) {
+      const newContracts = {}
+      for (let i = 0; i < lastUsedContracts.length; i++) {
+        const contract = lastUsedContracts[i]
+        const { instance, error } = await getContractInstance(contract)
+
+        newContracts[contract.address] = {
+          ...contract,
+          instance,
+          error
+        }
+      }
+
+      setContracts(newContracts)
+    }
     const lastUsedContracts = getLastUsedContracts()
-    console.log('aaa')
     if (lastUsedContracts) {
-      setContract(lastUsedContracts as SelectedContract[])
+      loadContracts(lastUsedContracts as SelectedContract[])
     }
     //@TODO: remove it
     // eslint-disable-next-line
@@ -38,9 +53,7 @@ export default function Playground() {
     }
   }, [contracts])
 
-  function addContract(event: React.FormEvent<any>) {
-    event.preventDefault()
-
+  function fillSelectedContract(event: React.FormEvent<any>) {
     const elements = event.currentTarget.form
     const contract = {}
     for (let i = 0; i < elements.length; i++) {
@@ -48,80 +61,112 @@ export default function Playground() {
       contract[element.name] = element.value
     }
 
-    if (event.currentTarget.name === 'name' && contracts[contract['address']]) {
-      return setContracts({
+    return contract as SelectedContract
+  }
+
+  async function handleAddressChange(
+    event: React.FormEvent<any>,
+    prevValue?: string
+  ) {
+    event.preventDefault()
+
+    if (event.currentTarget.value.length) {
+      const newContract = fillSelectedContract(event)
+      const { instance, error } = await getContractInstance(newContract)
+
+      setContracts({
+        ...omit(contracts, prevValue),
+        [newContract.address]: {
+          ...newContract,
+          instance,
+          error
+        }
+      })
+    } else {
+      setContracts(omit(contracts, prevValue))
+    }
+  }
+
+  function handleNameChange(event: React.FormEvent<any>) {
+    event.preventDefault()
+
+    const newContract = fillSelectedContract(event)
+    const editedContract = contracts[newContract.address]
+
+    if (editedContract) {
+      setContracts({
         ...contracts,
-        [contract['address']]: {
-          ...contracts[contract['address']],
+        [editedContract.address]: {
+          ...editedContract,
           name: event.currentTarget.value
         }
       })
     }
-
-    if (
-      event.currentTarget.name === 'isProxy' &&
-      contracts[contract['address']]
-    ) {
-      contract[event.currentTarget.name] = !contracts[contract['address']]
-        .isProxy
-    } else if (!contracts[contract['address']]) {
-      contract['isProxy'] = false
-    }
-
-    setContract([contract] as SelectedContract[])
   }
 
-  async function setContract(selectedContracts: SelectedContract[]) {
-    setIsLoading(true)
-    const newContracts: Contracts = {}
+  async function handleIsProxyChange(event: React.FormEvent<any>) {
+    event.preventDefault()
 
-    for (let i = 0; i < selectedContracts.length; i++) {
-      const contract = selectedContracts[i]
-      let contractInstance = null
+    const newContract = fillSelectedContract(event)
+    const editedContract = contracts[newContract.address]
 
-      if (contract.isProxy) {
-        const implementationAddress = await findABIForProxy(contract.address)
-        if (implementationAddress) {
-          contractInstance = await getContract(
-            implementationAddress,
-            contract.address
-          )
-        }
-      } else {
-        contractInstance = await getContract(contract.address)
-      }
-
-      newContracts[contract.address] = {
-        instance: contractInstance,
-        address: contract.address,
-        name: contract.name,
-        isProxy: contract.isProxy
-      }
-
-      if (!contractInstance) {
-        newContracts[contract.address].error = (
-          <p>
-            {'No implementation found. Please contact me'}
-            <a
-              href="https://twitter.com/nachomazzara"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {'@nachomazzara'}
-            </a>
-          </p>
-        )
-      }
+    if (editedContract) {
+      newContract.isProxy = !editedContract.isProxy
+    } else {
+      newContract.isProxy = false
     }
+
+    const { instance, error } = await getContractInstance(newContract)
+
     setContracts({
       ...contracts,
-      ...newContracts
+      [newContract.address]: {
+        ...newContract,
+        instance,
+        error
+      }
     })
-    setIsLoading(false)
   }
 
-  function renderContract(contract: SelectedContract | null, key?: string) {
-    let address, name, error
+  async function getContractInstance(contract: SelectedContract) {
+    setIsLoading(true)
+
+    let instance = null
+    let error: SelectedContractError = null
+
+    if (contract.isProxy) {
+      const implementationAddress = await findABIForProxy(contract.address)
+      if (implementationAddress) {
+        instance = await getContract(implementationAddress, contract.address)
+      }
+    } else {
+      instance = await getContract(contract.address)
+    }
+
+    if (!instance) {
+      error = (
+        <p>
+          {'No implementation found. Please contact me'}
+          <a
+            href="https://twitter.com/nachomazzara"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {'@nachomazzara'}
+          </a>
+        </p>
+      )
+    }
+
+    setIsLoading(false)
+
+    return { instance, error }
+  }
+
+  function renderContract(contract?: SelectedContract) {
+    let address: string | undefined,
+      name: string | undefined,
+      error: SelectedContractError | undefined
 
     if (contract) {
       address = contract.address
@@ -130,34 +175,38 @@ export default function Playground() {
     }
 
     return (
-      <form key={key ? key : '0'}>
-        <input
-          name="address"
-          type="text"
-          placeholder="contract address"
-          value={address}
-          onChange={addContract}
-        />
-        <input
-          name="name"
-          type="text"
-          placeholder="variable name"
-          value={name}
-          onChange={addContract}
-        />
+      <form key={address || Date.now()}>
+        <div>
+          <input
+            name="address"
+            type="text"
+            placeholder="contract address"
+            value={address}
+            onChange={e => handleAddressChange(e, address)}
+          />
+          <input
+            name="name"
+            type="text"
+            placeholder="variable name"
+            value={name}
+            disabled={!address}
+            onChange={handleNameChange}
+          />
+        </div>
         <div className="isProxy">
           <input
             name="isProxy"
             id="checkbox"
             type="checkbox"
-            onChange={addContract}
+            disabled={!address}
+            onChange={handleIsProxyChange}
             checked={contract ? contract.isProxy : false}
           />
           <label htmlFor="checkbox">
             {'Upgradable contract using the proxy pattern'}
           </label>
         </div>
-        {error && <p>{error}</p>}
+        {error && <div className="error">{error}</div>}
       </form>
     )
   }
@@ -172,8 +221,8 @@ export default function Playground() {
       <div className="header">
         <h1>Web3 Playground</h1>
         <h2>Contracts</h2>
-        {Object.keys(contracts).map(key => renderContract(contracts[key], key))}
-        {renderContract(null)}
+        {Object.keys(contracts).map(key => renderContract(contracts[key]))}
+        {renderContract()}
       </div>
       <Editor
         contracts={contracts}
