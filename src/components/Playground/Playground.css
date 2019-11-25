@@ -19,7 +19,7 @@
   justify-content: space-between;
 }
 
-.header .title .footer {
+.header .title .menu {
   text-align: right;
   height: 50px;
   display: flex;
@@ -27,7 +27,7 @@
   justify-content: flex-end;
 }
 
-.header .title .footer a {
+.header .title .menu a {
   color: white;
   font-size: 14px;
   text-decoration: none;
@@ -37,7 +37,7 @@
   text-align: center;
 }
 
-.header .title .footer a:hover {
+.header .title .menu a:hover {
   background: #4f4f4f;
 }
 
@@ -94,7 +94,7 @@ form div.error p a {
 form input {
   margin: 0 5px;
   padding: 10px;
-  width: 260px;
+  width: 270px;
   border: none;
   border-radius: 3px;
   height: 10px;
@@ -120,13 +120,55 @@ form input:disabled {
   margin-top: 5px;
 }
 
+.icon.trash {
+  width: 22px;
+  height: 22px;
+  border-radius: 0 0 3px 3px;
+  border-top: none;
+  margin: 0px 2px 0px;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  font-style: normal;
+  text-align: left;
+  text-indent: -9999px;
+  direction: ltr;
+  color: #c18871;
+  background: #c18871;
+  transform: scale(0.5);
+  cursor: pointer;
+  min-width: 20px;
+}
+
+.icon.trash:hover {
+  color: #ea8787;
+  background: #ea8787;
+}
+
+.icon.trash:before {
+  content: '';
+  width: 8px;
+  height: 2px;
+  top: -6px;
+  box-shadow: inset 0 0 0 32px, -10px 2px 0 0, -6px 2px 0 0, 0 2px 0 0,
+    6px 2px 0 0, 10px 2px 0 0;
+  position: absolute;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+
 @media (max-width: 678px) {
   .Playground.maximized {
     overflow: unset;
     max-height: 100%;
   }
 
-  .header .title .footer {
+  .header .title .menu {
     display: none;
+  }
+
+  form div.error {
+    font-size: 12px;
   }
 }

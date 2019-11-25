@@ -101,6 +101,11 @@ export default function Playground() {
 
     if (event.currentTarget.value.length) {
       const newContract = fillSelectedContract(event)
+      const editedContract = contracts[newContract.address]
+      if (!editedContract) {
+        newContract.isProxy = false
+      }
+
       const { instance, error } = await getContractInstance(newContract)
 
       setContracts({
@@ -138,6 +143,10 @@ export default function Playground() {
         error
       }
     })
+  }
+
+  function handleRemoveContract(address: string) {
+    setContracts(omit(contracts, address))
   }
 
   async function getContractInstance(contract: SelectedContract) {
@@ -204,6 +213,12 @@ export default function Playground() {
             disabled={!address}
             onChange={handleNameChange}
           />
+          {address && (
+            <i
+              className="icon trash"
+              onClick={() => handleRemoveContract(address!)}
+            />
+          )}
         </div>
         <div className="isProxy">
           <input
@@ -233,7 +248,7 @@ export default function Playground() {
       <div className="header">
         <div className="title">
           <h1>Web3 Playground</h1>
-          <div className="footer">
+          <div className="menu">
             <a
               target="_blank"
               href="https://github.com/nachomazzara/web3playground#how-it-works"
