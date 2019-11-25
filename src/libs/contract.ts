@@ -1,7 +1,11 @@
+import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract/types'
 
 import { getWeb3Instance, getAPI } from './web3'
 import { SelectedContracts } from 'components/Playground/types'
+
+export const EMPTY_SLOT = '0x0000000000000000000000000000000000000000000000000000000000000000'
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export const TOPICS_FOR_PROXYS = [
   {
@@ -50,7 +54,11 @@ export async function findABIForProxy(
     }
   }
 
-  address = getAddressByStorageSlot(web3, proxyAddress)
+  address = await getAddressByStorageSlot(web3, proxyAddress)
+
+  if (!address || (address && (address === EMPTY_SLOT || address === ZERO_ADDRESS))) {
+    address = await getAddressByMinimalProxy(web3, proxyAddress)
+  }
 
   return address
 }
@@ -65,7 +73,7 @@ function getAddressByData(event: { data: string }, index: number) {
 }
 
 async function getAddressByStorageSlot(
-  web3: any,
+  web3: Web3,
   proxyAddress: string
 ): Promise<string | undefined> {
   const res = await fetch(
@@ -76,6 +84,22 @@ async function getAddressByStorageSlot(
   let address
   if (data && web3.utils.isAddress(data.slice(-40))) {
     address = `0x${data.slice(-40)}`
+  }
+
+  return address
+}
+
+export async function getAddressByMinimalProxy(web3: Web3, proxyAddress: string): Promise<string | undefined> {
+  const res = await fetch(
+    `${getAPI()}?module=proxy&action=eth_getCode&address=${proxyAddress}`
+  )
+  const data = (await res.json()).result
+
+  let address
+  const startFrom = data.indexOf('0x36') !== -1 ? 22 : 24 // If it is minimal proxy, starts from 22 (363d3d373d3d3d363d73bebebebebebebebebebebebebebebebebebebebe5af43d82803e903d91602b57fd5bf3)
+  const possibleAddress = `0x${data.slice(startFrom, startFrom + 40)}`
+  if (data && web3.utils.isAddress(possibleAddress)) {
+    address = possibleAddress
   }
 
   return address
