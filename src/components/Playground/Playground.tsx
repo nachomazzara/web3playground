@@ -230,7 +230,14 @@ export default function Playground() {
             checked={contract ? contract.isProxy : false}
           />
           <label htmlFor="checkbox">
-            {'Upgradable contract using the proxy pattern'}
+            {'Upgradable contract using the proxy pattern'}{' '}
+            <a
+              target="_blank"
+              href="https://github.com/nachomazzara/web3playground#how-it-works"
+              rel="noopener noreferrer"
+            >
+              ?
+            </a>
           </label>
         </div>
         {error && <div className="error">{error}</div>}

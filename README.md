@@ -80,13 +80,15 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
   Yes, the snippet runs in the browser.
 
-- **Which proxy implementations are supported?**
+- ###**Which proxy implementations are supported?**
 
   So far, the ones detected by topics as:
 
   - Event _`Upgrade(address,bytes)`_ = `0xe74baeef5988edac1159d9177ca52f0f3d68f624a1996f77467eb3ebfb316537`.
 
   - Event _`Upgraded(address)`_: `0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b`.
+
+  - [EIP-1167 MinimalProxy](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1167.md).
 
   - Implementation made by [OpenZeppelin](https://docs.openzeppelin.com/sdk/2.5/writing-contracts.html). Searching for the storage slot `0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3`
 
