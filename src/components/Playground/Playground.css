@@ -120,6 +120,20 @@ form input:disabled {
   margin-top: 5px;
 }
 
+.isProxy a {
+  border: 1px solid #62aee2;
+  color: #62aee2;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  text-align: center;
+  font-size: 10px;
+  text-decoration: none;
+  margin-left: 2px;
+  font-weight: 600;
+}
+
 .icon.trash {
   width: 22px;
   height: 22px;

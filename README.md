@@ -76,11 +76,11 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
 ### FAQ
 
-- **Is only javascript available?**
+- #### **Is only javascript available?**
 
   Yes, the snippet runs in the browser.
 
-- **Which proxy implementations are supported?**
+- #### **Which proxy implementations are supported?**
 
   So far, the ones detected by topics as:
 
@@ -88,21 +88,23 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
   - Event _`Upgraded(address)`_: `0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b`.
 
+  - [EIP-1167 MinimalProxy](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1167.md).
+
   - Implementation made by [OpenZeppelin](https://docs.openzeppelin.com/sdk/2.5/writing-contracts.html). Searching for the storage slot `0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3`
 
-- **Which chains are supported?**
+- #### **Which chains are supported?**
 
   Every RCP call is made to the network selected in your provider.
 
-- **Which wallets are supported?**
+- #### **Which wallets are supported?**
 
   I 've tested it with a few. Also mobile. If you have a wallet and it is not supported, please let me know and I will add it.
 
-- **Can I refresh the browser?**
+- #### **Can I refresh the browser?**
 
   Yes! Contracts and code are stored at localstorage if any.
 
-- **Can I contribute?**
+- #### **Can I contribute?**
 
   Yes! please, It will be awesome.
 

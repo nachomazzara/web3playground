@@ -96,7 +96,7 @@ export async function getAddressByMinimalProxy(web3: Web3, proxyAddress: string)
   const data = (await res.json()).result
 
   let address
-  const startFrom = data.indexOf('0x36') !== -1 ? 22 : 24 // If it is minimal proxy, starts from 22 (363d3d373d3d3d363d73bebebebebebebebebebebebebebebebebebebebe5af43d82803e903d91602b57fd5bf3)
+  const startFrom = data.indexOf('0x36') !== -1 ? 22 : 24 // If it is minimal proxy EIP-1167, starts from 22 (363d3d373d3d3d363d73bebebebebebebebebebebebebebebebebebebebe5af43d82803e903d91602b57fd5bf3)
   const possibleAddress = `0x${data.slice(startFrom, startFrom + 40)}`
   if (data && web3.utils.isAddress(possibleAddress)) {
     address = possibleAddress
