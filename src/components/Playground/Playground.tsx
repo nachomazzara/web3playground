@@ -233,7 +233,7 @@ export default function Playground() {
             {'Upgradable contract using the proxy pattern'}{' '}
             <a
               target="_blank"
-              href="https://github.com/nachomazzara/web3playground/tree/feat/eth#which-proxy-implementations-are-supported"
+              href="https://github.com/nachomazzara/web3playground#which-proxy-implementations-are-supported"
               rel="noopener noreferrer"
             >
               ?
