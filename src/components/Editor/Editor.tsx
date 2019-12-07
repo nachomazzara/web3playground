@@ -63,11 +63,17 @@ export default function Editor(props: Props) {
 
   // Did Mount
   useEffect(() => {
-    const lastUsedCode = getLastUsedCode()
-    if (lastUsedCode) {
-      setCode(lastUsedCode)
+    let initCode
+    if (props.initCode) {
+      initCode = props.initCode
+    } else {
+      initCode = getLastUsedCode()
     }
-  }, [])
+
+    if (initCode) {
+      setCode(initCode)
+    }
+  }, [props.initCode])
 
   useEffect(() => {
     if (monacoRef.current) {

@@ -1,4 +1,6 @@
 
+import { getNetworkId } from 'libs/web3'
+
 const KEY_BASE = 'web3playground-'
 const KEY_LAST_USED = `${KEY_BASE}last-used-`
 const KEY_NETWORK = `${KEY_BASE}network`
@@ -13,17 +15,18 @@ export type LastUsedContracts = {
 }[]
 
 
-export function saveLastUsedNetwork(network: string) {
-  window.localStorage.setItem(KEY_NETWORK, network)
+export function saveLastUsedNetwork(networkId: number) {
+  window.localStorage.setItem(KEY_NETWORK, networkId.toString())
 }
 
-export function getLastUsedNetwork(): string {
+export function getLastUsedNetwork(): number {
   const data = window.localStorage.getItem(KEY_NETWORK)
-  return data ? data : 'mainnet'
+  return data ? Number(data) : -1
 }
 
 export function saveLastUsedContracts(contracts: LastUsedContracts) {
   window.localStorage.setItem(KEY_CONTRACTS, JSON.stringify(contracts))
+  saveLastUsedNetwork(getNetworkId())
 }
 
 export function getLastUsedContracts(): LastUsedContracts | null {

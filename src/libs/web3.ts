@@ -1,10 +1,14 @@
+import { useState, useEffect } from 'react'
 import Web3 from 'web3'
 import { HttpProvider } from 'web3-providers-http/types'
+import { saveLastUsedNetwork } from './localstorage'
 
 export interface EthereumWindow {
   ethereum?: HttpProvider & {
     enable?: () => Promise<string[]>
-
+    send: any
+    on: (eventName: string, callback: any) => void
+    off: (eventName: string, callback: any) => void
     autoRefreshOnNetworkChange: boolean
     networkVersion: number
   }
@@ -63,7 +67,15 @@ export function getChains() {
 export function getNetworkNameById(id: number): string {
   const chain = getChains().find(chain => Number(chain.id) === Number(id))
 
-  return chain ? chain.value : 'mainnet'
+  return chain ? chain.value : 'unknown'
+}
+
+export function getNetworkName() {
+  return getNetworkNameById(chainId || 1)
+}
+
+export function getNetworkId() {
+  return chainId;
 }
 
 export function getAPI(): string {
@@ -71,4 +83,33 @@ export function getAPI(): string {
   return `https://api${
     network !== 'mainnet' ? `-${network}` : ''
     }.etherscan.io/api`
+}
+
+export function useNetwork() {
+  const [network, setNetwork] = useState(getNetworkName())
+
+  useEffect(() => {
+    const web3 = getWeb3Instance()
+    function handleNetworkChanged(networkId: number) {
+      chainId = networkId
+      setNetwork(getNetworkNameById(networkId))
+      // @TODO: only change network when user changed manually and not when I do the first getId call.
+      saveLastUsedNetwork(networkId)
+    }
+
+    if (ethereum) {
+      ethereum.on('chainChanged', handleNetworkChanged)
+      ethereum.on('networkChanged', handleNetworkChanged)
+      web3.eth.net.getId().then(handleNetworkChanged)
+    }
+
+    return () => {
+      if (ethereum) {
+        ethereum.off('chainChanged', handleNetworkChanged)
+        ethereum.off('networkChanged', handleNetworkChanged)
+      }
+    }
+  }, [])
+
+  return network
 }
