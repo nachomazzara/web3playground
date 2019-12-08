@@ -58,6 +58,6 @@ export async function resolveHash(hash: string) {
 }
 
 async function resolve(hash: string, resolver: string) {
-  const res = await timeoutPromise(fetch(`${resolver}${hash}`), 10000)
+  const res = await timeoutPromise(fetch(`${resolver}${hash}`), 30000)
   return res.json()
 }
