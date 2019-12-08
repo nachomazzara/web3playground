@@ -1,7 +1,11 @@
+:root {
+  --text: #dddddd;
+}
+
 html {
   font-family: 'Open Sans', sans-serif;
   background: #222222;
-  color: white;
+  color: var(--text);
 }
 
 body {

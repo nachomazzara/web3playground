@@ -221,6 +221,10 @@ export default function Editor(props: Props) {
                 <i className="icon run" />
                 {'Run'}
               </button>
+              <button onClick={handleExecuteCode} title="Upload & Share">
+                <i className="icon upload" />
+                {'Upload'}
+              </button>
             </div>
             <div className="col right">
               <button onClick={handleResetCode} title="Reset">
