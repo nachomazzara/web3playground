@@ -5,7 +5,7 @@ const IPFS_RESOLVER = 'https://ipfs.io/ipfs/'
 const PINATA_RESOLVER = 'https://gateway.pinata.cloud/ipfs/'
 
 // I know that I am exposing secret keys but it is in purpose!
-export async function share() {
+export async function upload() {
   const pinataAPIKey = '41d9d533daec1ccef42a'
   const pinataSecretAPIKey = '1721c608c98314394260fb427e6f7ba6ace1e1876ebc4b645387f95bb77eacf0'
 

@@ -1,14 +1,10 @@
-.error {
-  color: #ff4e4e !important;
-}
-
 .Playground.maximized {
   overflow: hidden;
   max-height: 100vh;
   position: relative;
 }
 
-.header {
+.Playground .header {
   margin: 5px 20px;
   transition: max-height 0.1s ease-in, margin 0.1s ease-in;
   max-height: initial;
@@ -16,20 +12,20 @@
   max-height: 100vh;
 }
 
-.header .network p {
+.Playground .header .network p {
   display: flex;
   font-size: 13px;
   justify-content: flex-end;
   align-items: center;
-  margin-top: 5px;
+  margin-top: 10px;
   margin-bottom: 0;
 }
 
-.header .network p:not(.error) {
+.Playground .header .network p:not(.error) {
   text-transform: capitalize;
 }
 
-.header .network p:not(.error):before {
+.Playground .header .network p:not(.error):before {
   content: '';
   margin-right: 5px;
   background-color: rgb(125, 128, 130);
@@ -39,38 +35,38 @@
   border-radius: 50%;
 }
 
-.header .network p.mainnet:before {
+.Playground .header .network p.mainnet:before {
   background-color: #038789;
 }
 
-.header .network p.ropsten:before {
+.Playground .header .network p.ropsten:before {
   background-color: #e91550;
 }
 
-.header .network p.kovan:before {
+.Playground .header .network p.kovan:before {
   background-color: #690496;
 }
 
-.header .network p.rinkeby:before {
+.Playground .header .network p.rinkeby:before {
   background-color: #ebb33f;
 }
 
-.header .network p.goerli :before {
+.Playground .header .network p.goerli :before {
   background-color: #3099f2;
 }
 
-.header .title {
+.Playground .header .title {
   display: flex;
   align-content: center;
   align-items: center;
   justify-content: space-between;
 }
 
-.header .title h1 {
+.Playground .header .title h1 {
   margin-top: 10px;
 }
 
-.header .title .menu {
+.Playground .header .title .menu {
   text-align: right;
   height: 50px;
   display: flex;
@@ -78,17 +74,17 @@
   justify-content: flex-end;
 }
 
-.header .title .menu a {
+.Playground .header .title .menu a {
   color: white;
-  font-size: 14px;
+  font-size: 12px;
   text-decoration: none;
-  background: #383838;
-  border-radius: 10px;
+  background: var(--dark-background);
+  border-radius: 5px;
   padding: 10px;
   text-align: center;
 }
 
-.header .title .menu a:hover {
+.Playground .header .title .menu a:hover {
   background: #4f4f4f;
 }
 
@@ -100,9 +96,18 @@
 }
 
 .Playground.maximized .header h1,
-.Playground.maximized .header h2 {
+.Playground.maximized .header h2,
+.Playground.maximized .network,
+.Playground.maximized .network p {
   margin: 0;
   transition: max-height 0.1s ease-out, margin 0.1s ease-out;
+}
+
+.Playground .ipfs-error {
+  font-size: 13px;
+  background: var(--dark-background);
+  border: 1px solid black;
+  padding: 10px;
 }
 
 h2 {
@@ -147,8 +152,9 @@ form input {
   border: none;
   border-radius: 3px;
   height: 10px;
-  background: #424242;
+  background: var(--input);
   color: var(--text);
+  outline: none;
 }
 
 form input[type='checkbox'] {
@@ -229,7 +235,7 @@ form input:disabled {
     max-height: 100%;
   }
 
-  .header .title .menu {
+  .Playground .header .title .menu {
     display: none;
   }
 

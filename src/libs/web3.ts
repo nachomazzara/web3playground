@@ -71,7 +71,7 @@ export function getNetworkNameById(id: number): string {
 }
 
 export function getNetworkName() {
-  return getNetworkNameById(chainId || 1)
+  return chainId ? getNetworkNameById(chainId) : ''
 }
 
 export function getNetworkId() {
@@ -90,17 +90,19 @@ export function useNetwork() {
 
   useEffect(() => {
     const web3 = getWeb3Instance()
-    function handleNetworkChanged(networkId: number) {
+    function handleNetworkChanged(networkId: number, saveLastUsed = true) {
       chainId = networkId
       setNetwork(getNetworkNameById(networkId))
-      // @TODO: only change network when user changed manually and not when I do the first getId call.
-      saveLastUsedNetwork(networkId)
+
+      if (saveLastUsed) {
+        saveLastUsedNetwork(networkId)
+      }
     }
 
     if (ethereum) {
-      ethereum.on('chainChanged', handleNetworkChanged)
+      ethereum.on('chainChanged', () => handleNetworkChanged)
       ethereum.on('networkChanged', handleNetworkChanged)
-      web3.eth.net.getId().then(handleNetworkChanged)
+      web3.eth.net.getId().then((res) => handleNetworkChanged(res, false))
     }
 
     return () => {

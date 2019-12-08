@@ -9,7 +9,7 @@ import {
   getLastUsedNetwork
 } from 'libs/localstorage'
 import { omit, filter } from 'libs/utils'
-import { share, resolveHash } from 'libs/ipfs'
+import { resolveHash } from 'libs/ipfs'
 import { useNetwork, getNetworkNameById } from 'libs/web3'
 import {
   SelectedContracts,
@@ -23,9 +23,9 @@ export default function Playground() {
   const [isLoading, setIsLoading] = useState(false)
   const [isMaximized, setIsMaximized] = useState(false)
   const [contracts, setContracts] = useState<SelectedContracts>({})
-  const [ipfsHash, setIPFSHash] = useState(null)
   const [code, setCode] = useState(null)
   const [network, setNetwork] = useState()
+  const [error, setError] = useState()
   const isInitialMount = useRef(true)
 
   const currentNetwork = useNetwork()
@@ -64,8 +64,7 @@ export default function Playground() {
           setCode(data.code)
         }
       } catch (e) {
-        // @TODO: see what to do with this error message
-        console.log(e.message)
+        setError({ message: e.message, hash })
       }
 
       setIsLoading(false)
@@ -293,24 +292,13 @@ export default function Playground() {
     setIsMaximized(!isMaximized)
   }
 
-  async function handleOnShare() {
-    setIsLoading(true)
-    const { IpfsHash, error } = await share()
-    if (error) {
-      alert(error)
-    }
-
-    setIPFSHash(IpfsHash)
-    setIsLoading(false)
-  }
-
   return (
     <div className={`Playground ${isMaximized ? ' maximized' : ''}`}>
       {isLoading && <Loader />}
       <div className="header">
         <div className="network">
           <p className={currentNetwork}>{currentNetwork}</p>
-          {network && currentNetwork !== network && (
+          {currentNetwork && network && currentNetwork !== network && (
             <p className="error">
               The snippet you are trying to use is set to be run on {network}.
               Please change the network.
@@ -327,10 +315,11 @@ export default function Playground() {
             >
               {'How it works 👨‍💻'}
             </a>
-            <button onClick={handleOnShare}>Upload & Share</button>
-            {ipfsHash && <p>{ipfsHash}</p>}
           </div>
         </div>
+        {error && (
+          <p className="error ipfs-error">{`Failed to load the code snippet under the hash ${error.hash}: ${error.message}`}</p>
+        )}
         <h2>Contracts</h2>
         {Object.keys(contracts).map(key => renderContract(contracts[key]))}
         {renderContract()}

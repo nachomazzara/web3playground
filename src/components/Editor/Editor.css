@@ -24,7 +24,7 @@
   font-weight: 600;
   text-transform: uppercase;
   text-align: center;
-  border-color: #000;
+  border-color: black;
   border-radius: 3px;
 }
 
@@ -46,7 +46,7 @@
 .actions {
   display: flex;
   padding: 10px 20px;
-  background: #383838;
+  background: var(--dark-background);
   align-items: center;
   align-content: center;
   border-bottom: 5px solid #1d1d1d;
@@ -107,7 +107,7 @@
   left: 0;
   border-style: solid;
   border-width: 6px 0px 6px 12px;
-  border-color: transparent transparent transparent #63aee3;
+  border-color: transparent transparent transparent var(--blue);
 }
 
 .icon.hide {
@@ -117,7 +117,7 @@
   left: 0;
   border-style: solid;
   border-width: 1px 0px 1px 12px;
-  border-color: #63aee3;
+  border-color: var(--blue);
 }
 
 .icon.reset {
@@ -128,7 +128,7 @@
   border-radius: 50%;
   border-left-color: transparent;
   position: relative;
-  color: #63aee3;
+  color: var(--blue);
 }
 
 .icon.reset:before {
@@ -148,7 +148,7 @@
 }
 
 .icon.maximize {
-  color: #63aee3;
+  color: var(--blue);
   position: relative;
   margin-left: 2px;
   margin-top: 0px;
@@ -165,7 +165,7 @@
   top: -3px;
   width: 5px;
   height: 19px;
-  color: #383838;
+  color: var(--dark-background);
   background-color: currentColor;
   transform-origin: center;
 }
@@ -177,7 +177,7 @@
   top: -4px;
   width: 5px;
   height: 19px;
-  color: #383838;
+  color: var(--dark-background);
   background-color: currentColor;
   transform-origin: center;
   transform: rotate(90deg);
@@ -193,7 +193,7 @@
   text-indent: -9999px;
   vertical-align: middle;
   width: 1em;
-  color: #63aee3;
+  color: var(--blue);
 }
 
 .icon.copy:before {
@@ -226,7 +226,7 @@
 }
 
 .icon.upload {
-  color: #63aee3;
+  color: var(--blue);
   position: relative;
   width: 13px;
   height: 4px;
