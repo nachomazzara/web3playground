@@ -32,9 +32,9 @@ export default function Editor(props: Props) {
   let monacoRef = useRef<typeof monacoEditor | null>(null)
   let textareaRef: HTMLTextAreaElement
 
-  const instanceWindowVars = useCallback(() => {
+  const instanceWindowVars = useCallback(async () => {
     // @ts-ignore
-    window['web3'] = getWeb3Instance()
+    window['web3'] = await getWeb3Instance()
 
     if (prevContracts) {
       Object.keys(prevContracts)
@@ -194,6 +194,7 @@ export default function Editor(props: Props) {
   }
 
   function toggleModal() {
+    saveLastUsedCode(code)
     setIsModalOpen(!isModalOpen)
   }
 

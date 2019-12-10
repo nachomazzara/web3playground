@@ -46,7 +46,7 @@ export async function upload() {
 export async function resolveHash(hash: string) {
   let data
   try {
-    data = await resolve(hash.replace('Z', 'd'), PINATA_RESOLVER)
+    data = await resolve(hash, PINATA_RESOLVER)
   } catch (e) {
     if (e.message === 'timeout') {
       data = await resolve(hash, IPFS_RESOLVER)
