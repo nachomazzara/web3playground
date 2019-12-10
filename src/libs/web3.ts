@@ -87,10 +87,10 @@ export function useNetwork() {
       }
     }
 
-    if (ethereum && web3) {
+    if (ethereum) {
       ethereum.on('chainChanged', () => handleNetworkChanged)
       ethereum.on('networkChanged', handleNetworkChanged)
-      web3.eth.net.getId().then((res) => handleNetworkChanged(res, false))
+      getWeb3Instance().then(() => handleNetworkChanged(chainId, false))
     }
 
     return () => {
