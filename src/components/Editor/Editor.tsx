@@ -8,14 +8,15 @@ import editorTypes from '!!raw-loader!./editorTypes.d.ts'
 /* eslint import/no-webpack-loader-syntax: off */
 // @ts-ignore
 import defaultScript from '!!raw-loader!./defaultScript.js'
+import { SelectedContracts } from 'components/Playground/types'
+import { UploadModal } from 'components/Modals'
 import { typeContractMethods } from 'libs/contract'
 import { getWeb3Instance } from 'libs/web3'
 import { isIOS } from 'libs/device'
-
-import { Props } from './types'
 import { saveLastUsedCode, getLastUsedCode } from 'libs/localstorage'
+import { Props } from './types'
+
 import './Editor.css'
-import { SelectedContracts } from 'components/Playground/types'
 
 export const OUTPUT_HEADLINE = '/***** Output *****/\n'
 
@@ -25,14 +26,15 @@ export default function Editor(props: Props) {
   const [isRunning, setIsRunning] = useState(false)
   const [output, setOutput] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const prevContracts = usePrevious(props.contracts)
 
   let monacoRef = useRef<typeof monacoEditor | null>(null)
   let textareaRef: HTMLTextAreaElement
 
-  const instanceWindowVars = useCallback(() => {
+  const instanceWindowVars = useCallback(async () => {
     // @ts-ignore
-    window['web3'] = getWeb3Instance()
+    window['web3'] = await getWeb3Instance()
 
     if (prevContracts) {
       Object.keys(prevContracts)
@@ -63,11 +65,17 @@ export default function Editor(props: Props) {
 
   // Did Mount
   useEffect(() => {
-    const lastUsedCode = getLastUsedCode()
-    if (lastUsedCode) {
-      setCode(lastUsedCode)
+    let initCode
+    if (props.initCode) {
+      initCode = props.initCode
+    } else {
+      initCode = getLastUsedCode()
     }
-  }, [])
+
+    if (initCode) {
+      setCode(initCode)
+    }
+  }, [props.initCode])
 
   useEffect(() => {
     if (monacoRef.current) {
@@ -185,6 +193,11 @@ export default function Editor(props: Props) {
     setError(null)
   }
 
+  function toggleModal() {
+    saveLastUsedCode(code)
+    setIsModalOpen(!isModalOpen)
+  }
+
   let outputValue = OUTPUT_HEADLINE
 
   if (isRunning) {
@@ -214,6 +227,10 @@ export default function Editor(props: Props) {
               <button onClick={handleExecuteCode} title="Run">
                 <i className="icon run" />
                 {'Run'}
+              </button>
+              <button onClick={toggleModal} title="Upload & Share">
+                <i className="icon upload" />
+                {'Upload'}
               </button>
             </div>
             <div className="col right">
@@ -278,6 +295,7 @@ export default function Editor(props: Props) {
         }}
         value={outputValue}
       />
+      {isModalOpen && <UploadModal onClose={toggleModal} />}
     </>
   )
 }

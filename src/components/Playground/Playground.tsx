@@ -3,8 +3,14 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import Loader from 'components/Loader'
 import Editor from 'components/Editor'
 import { findABIForProxy, getContract } from 'libs/contract'
-import { saveLastUsedContracts, getLastUsedContracts } from 'libs/localstorage'
+import {
+  saveLastUsedContracts,
+  getLastUsedContracts,
+  getLastUsedNetwork
+} from 'libs/localstorage'
 import { omit, filter } from 'libs/utils'
+import { resolveHash } from 'libs/ipfs'
+import { useNetwork, getNetworkNameById } from 'libs/web3'
 import {
   SelectedContracts,
   SelectedContract,
@@ -17,7 +23,12 @@ export default function Playground() {
   const [isLoading, setIsLoading] = useState(false)
   const [isMaximized, setIsMaximized] = useState(false)
   const [contracts, setContracts] = useState<SelectedContracts>({})
+  const [code, setCode] = useState(null)
+  const [network, setNetwork] = useState()
+  const [error, setError] = useState()
   const isInitialMount = useRef(true)
+
+  const currentNetwork = useNetwork()
 
   // Did Mount
   useEffect(() => {
@@ -36,11 +47,43 @@ export default function Playground() {
 
       setContracts(newContracts)
     }
-    const lastUsedContracts = getLastUsedContracts()
-    if (lastUsedContracts) {
-      loadContracts(lastUsedContracts as SelectedContract[])
+
+    async function setPlaygroundByIPFS(hash: string) {
+      setIsLoading(true)
+      try {
+        const data = await resolveHash(hash)
+        if (data.contracts) {
+          loadContracts(data.contracts)
+        }
+
+        if (data.network) {
+          setNetwork(getNetworkNameById(data.network))
+        }
+
+        if (data.code) {
+          setCode(data.code)
+        }
+      } catch (e) {
+        setError({ message: e.message, hash })
+      }
+
+      setIsLoading(false)
     }
-  }, [])
+
+    const paths = window.location.pathname.split('/').splice(1)
+    const hash = paths[0]
+    if (hash) {
+      setPlaygroundByIPFS(hash)
+    } else {
+      const lastUsedContracts = getLastUsedContracts()
+      const lastUsedNetwork = getLastUsedNetwork()
+
+      if (lastUsedContracts) {
+        setNetwork(getNetworkNameById(lastUsedNetwork))
+        loadContracts(lastUsedContracts as SelectedContract[])
+      }
+    }
+  }, [currentNetwork])
 
   useLayoutEffect(() => {
     if (isInitialMount.current) {
@@ -253,6 +296,15 @@ export default function Playground() {
     <div className={`Playground ${isMaximized ? ' maximized' : ''}`}>
       {isLoading && <Loader />}
       <div className="header">
+        <div className="network">
+          <p className={currentNetwork}>{currentNetwork}</p>
+          {currentNetwork && network && currentNetwork !== network && (
+            <p className="error">
+              The snippet you are trying to use is set to be run on {network}.
+              Please change the network.
+            </p>
+          )}
+        </div>
         <div className="title">
           <h1>Web3 Playground</h1>
           <div className="menu">
@@ -265,6 +317,9 @@ export default function Playground() {
             </a>
           </div>
         </div>
+        {error && (
+          <p className="error ipfs-error">{`Failed to load the code snippet under the hash ${error.hash}: ${error.message}`}</p>
+        )}
         <h2>Contracts</h2>
         {Object.keys(contracts).map(key => renderContract(contracts[key]))}
         {renderContract()}
@@ -274,6 +329,7 @@ export default function Playground() {
           contracts,
           (contract: SelectedContract) => !contract.error
         )}
+        initCode={code}
         isMaximized={isMaximized}
         onChangeSize={handleToggleMaximizeEditor}
       />

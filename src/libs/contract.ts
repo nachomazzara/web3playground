@@ -19,9 +19,9 @@ export const TOPICS_FOR_PROXYS = [
 ]
 
 export async function getContract(address: string, toAddress?: string): Promise<Contract | null> {
+  const web3 = await getWeb3Instance()
   const res = await fetch(`${getAPI()}?module=contract&action=getabi&address=${address}`)
   const abi = await res.json()
-  const web3 = getWeb3Instance()
 
   if (abi.result === 'Contract source code not verified') {
     return null
@@ -36,7 +36,8 @@ export async function getContract(address: string, toAddress?: string): Promise<
 export async function findABIForProxy(
   proxyAddress: string
 ): Promise<string | undefined> {
-  const web3 = getWeb3Instance()
+  const web3 = await getWeb3Instance()
+
   const api = `${getAPI()}?module=logs&action=getLogs&fromBlock=0&toBlock=latest&limit=1&address=${proxyAddress}&topic0=`
 
   let address

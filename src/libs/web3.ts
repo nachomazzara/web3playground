@@ -1,10 +1,14 @@
+import { useState, useEffect } from 'react'
 import Web3 from 'web3'
 import { HttpProvider } from 'web3-providers-http/types'
+import { saveLastUsedNetwork } from './localstorage'
 
 export interface EthereumWindow {
   ethereum?: HttpProvider & {
     enable?: () => Promise<string[]>
-
+    send: any
+    on: (eventName: string, callback: any) => void
+    off: (eventName: string, callback: any) => void
     autoRefreshOnNetworkChange: boolean
     networkVersion: number
   }
@@ -12,42 +16,31 @@ export interface EthereumWindow {
 
 const { ethereum } = window as EthereumWindow
 
-if (ethereum) {
-  ethereum.autoRefreshOnNetworkChange = false
-}
-
 let web3: Web3
 let chainId: number
 
-export function getWeb3Instance(): Web3 {
-  const { ethereum } = window as EthereumWindow
-
-  const networkChanged = ethereum && ethereum.networkVersion !== chainId
-
-  if (!web3 || networkChanged) {
-    chainId = ethereum ? ethereum.networkVersion : 0
-    web3 = new Web3(
-      ethereum
-        ? ethereum
-        : new Web3.providers.HttpProvider('https://localhost:8545')
-    )
+export async function connect() {
+  if (web3 && chainId) {
+    return web3
   }
+
+  if (ethereum) {
+    ethereum.autoRefreshOnNetworkChange = false
+    if (ethereum.enable) {
+      await ethereum.enable()
+    }
+    web3 = new Web3(ethereum)
+    chainId = await web3.eth.net.getId()
+  } else {
+    chainId = 0
+    web3 = new Web3(new Web3.providers.HttpProvider('https://localhost:8545'))
+  }
+
   return web3
 }
 
-export async function getDefaultAccount(): Promise<string | undefined> {
-  const { ethereum } = window as EthereumWindow
-
-  try {
-    if (ethereum && ethereum.enable) {
-      await ethereum.enable()
-      const accounts = await getWeb3Instance().eth.getAccounts()
-      return accounts[0]
-    }
-  } catch (e) {
-    console.log(e.message)
-    throw new Error('Please connect your wallet')
-  }
+export async function getWeb3Instance(): Promise<Web3> {
+  return connect()
 }
 
 export function getChains() {
@@ -63,7 +56,15 @@ export function getChains() {
 export function getNetworkNameById(id: number): string {
   const chain = getChains().find(chain => Number(chain.id) === Number(id))
 
-  return chain ? chain.value : 'mainnet'
+  return chain ? chain.value : 'unknown'
+}
+
+export function getNetworkName() {
+  return chainId ? getNetworkNameById(chainId) : ''
+}
+
+export function getNetworkId() {
+  return chainId;
 }
 
 export function getAPI(): string {
@@ -71,4 +72,34 @@ export function getAPI(): string {
   return `https://api${
     network !== 'mainnet' ? `-${network}` : ''
     }.etherscan.io/api`
+}
+
+export function useNetwork() {
+  const [network, setNetwork] = useState(getNetworkName())
+
+  useEffect(() => {
+    function handleNetworkChanged(networkId: number, saveLastUsed = true) {
+      chainId = networkId
+      setNetwork(getNetworkNameById(networkId))
+
+      if (saveLastUsed) {
+        saveLastUsedNetwork(networkId)
+      }
+    }
+
+    if (ethereum && web3) {
+      ethereum.on('chainChanged', () => handleNetworkChanged)
+      ethereum.on('networkChanged', handleNetworkChanged)
+      web3.eth.net.getId().then((res) => handleNetworkChanged(res, false))
+    }
+
+    return () => {
+      if (ethereum) {
+        ethereum.off('chainChanged', handleNetworkChanged)
+        ethereum.off('networkChanged', handleNetworkChanged)
+      }
+    }
+  }, [])
+
+  return network
 }

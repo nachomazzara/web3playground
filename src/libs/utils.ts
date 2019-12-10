@@ -21,3 +21,12 @@ export function filter<T>(object: T, condition: (p: any) => boolean): T {
       {} as T
     )
 }
+
+export async function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
+      reject(new Error("timeout"))
+    }, ms)
+    promise.then(resolve, reject)
+  })
+}

@@ -4,7 +4,7 @@
   position: relative;
 }
 
-.header {
+.Playground .header {
   margin: 5px 20px;
   transition: max-height 0.1s ease-in, margin 0.1s ease-in;
   max-height: initial;
@@ -12,14 +12,61 @@
   max-height: 100vh;
 }
 
-.header .title {
+.Playground .header .network p {
+  display: flex;
+  font-size: 13px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.Playground .header .network p:not(.error) {
+  text-transform: capitalize;
+}
+
+.Playground .header .network p:not(.error):before {
+  content: '';
+  margin-right: 5px;
+  background-color: rgb(125, 128, 130);
+  height: 6px;
+  width: 6px;
+  display: block;
+  border-radius: 50%;
+}
+
+.Playground .header .network p.mainnet:before {
+  background-color: #038789;
+}
+
+.Playground .header .network p.ropsten:before {
+  background-color: #e91550;
+}
+
+.Playground .header .network p.kovan:before {
+  background-color: #690496;
+}
+
+.Playground .header .network p.rinkeby:before {
+  background-color: #ebb33f;
+}
+
+.Playground .header .network p.goerli :before {
+  background-color: #3099f2;
+}
+
+.Playground .header .title {
   display: flex;
   align-content: center;
   align-items: center;
   justify-content: space-between;
 }
 
-.header .title .menu {
+.Playground .header .title h1 {
+  margin-top: 10px;
+}
+
+.Playground .header .title .menu {
   text-align: right;
   height: 50px;
   display: flex;
@@ -27,17 +74,17 @@
   justify-content: flex-end;
 }
 
-.header .title .menu a {
+.Playground .header .title .menu a {
   color: white;
-  font-size: 14px;
+  font-size: 12px;
   text-decoration: none;
-  background: #383838;
-  border-radius: 10px;
+  background: var(--dark-background);
+  border-radius: 5px;
   padding: 10px;
   text-align: center;
 }
 
-.header .title .menu a:hover {
+.Playground .header .title .menu a:hover {
   background: #4f4f4f;
 }
 
@@ -49,9 +96,18 @@
 }
 
 .Playground.maximized .header h1,
-.Playground.maximized .header h2 {
+.Playground.maximized .header h2,
+.Playground.maximized .network,
+.Playground.maximized .network p {
   margin: 0;
   transition: max-height 0.1s ease-out, margin 0.1s ease-out;
+}
+
+.Playground .ipfs-error {
+  font-size: 13px;
+  background: var(--dark-background);
+  border: 1px solid black;
+  padding: 10px;
 }
 
 h2 {
@@ -75,7 +131,6 @@ form div {
 }
 
 form div.error {
-  color: #ff4e4e;
   margin-left: 5px;
   font-weight: 400;
   font-size: 14px;
@@ -88,7 +143,6 @@ form div.error p {
 
 form div.error p a {
   margin-left: 4px;
-  color: #ff4e4e;
 }
 
 form input {
@@ -98,16 +152,19 @@ form input {
   border: none;
   border-radius: 3px;
   height: 10px;
+  background: var(--input);
+  color: var(--text);
+  outline: none;
 }
 
 form input[type='checkbox'] {
   width: 18px;
   margin-left: 5px;
-  height: 15px;
+  height: 17px;
 }
 
 form input::placeholder {
-  opacity: 0.7;
+  color: #8d8d8d;
 }
 
 form input:disabled {
@@ -178,7 +235,7 @@ form input:disabled {
     max-height: 100%;
   }
 
-  .header .title .menu {
+  .Playground .header .title .menu {
     display: none;
   }
 

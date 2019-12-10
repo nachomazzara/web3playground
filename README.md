@@ -7,6 +7,7 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 ## Table of content
 
 - [How it works](#how-it-works)
+- [Share](#share)
 - [Examples](#examples)
 - [FAQ](#faq)
 - [Next](#next)
@@ -19,6 +20,13 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 - Code.
 
 <img width="1028" alt="Screen Shot 2019-11-24 at 19 48 21" src="https://user-images.githubusercontent.com/7549152/69502939-61ddf780-0ef3-11ea-9dc3-8ec3e5cded25.png">
+
+### Share
+
+If you want to share what you did or you have an issue and needs help, you can upload and share it. It is using IPFS to make it fully decentralized.
+
+- Click on `upload`
+- Copy & share the link 🚀
 
 ### Examples
 

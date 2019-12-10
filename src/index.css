@@ -1,7 +1,16 @@
+:root {
+  --text: #dddddd;
+  --dark-background: #383838;
+  --blue: #63aee3;
+  --error: #ff4e4e;
+  --monaco: #1d1d1d;
+  --input: #424242;
+}
+
 html {
   font-family: 'Open Sans', sans-serif;
   background: #222222;
-  color: white;
+  color: var(--text);
 }
 
 body {
@@ -18,4 +27,8 @@ h2 {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.error {
+  color: var(--error);
 }
