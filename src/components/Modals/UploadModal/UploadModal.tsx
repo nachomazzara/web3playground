@@ -55,7 +55,7 @@ export default function UploadModal(props: Props) {
   const hashLink = `${window.location.origin}/${ipfsHash}`
 
   return (
-    <Modal onClose={props.onClose} className="UploadModal">
+    <Modal onClose={props.onClose} className="UploadModal" title="Share">
       {isLoading && <p>Uploading...</p>}
       {ipfsHash && (
         <div>

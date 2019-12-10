@@ -37,7 +37,6 @@
 
 .Modal .modal-header {
   text-align: right;
-  padding-bottom: 30px;
 }
 
 .Modal .modal-header .close {
@@ -72,6 +71,13 @@
 
 .Modal .modal-header .close:after {
   transform: rotate(-45deg);
+}
+
+.Modal .modal-header h3 {
+  text-align: center;
+  margin: 0;
+  font-weight: 400;
+  font-size: 24px;
 }
 
 .Modal .modal-body {

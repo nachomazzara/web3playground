@@ -44,16 +44,16 @@
 }
 
 .actions {
-  display: flex;
   padding: 10px 20px;
   background: var(--dark-background);
+  border-bottom: 5px solid #1d1d1d;
+  display: flex;
   align-items: center;
   align-content: center;
-  border-bottom: 5px solid #1d1d1d;
+  justify-content: space-between;
 }
 
 .actions .col {
-  width: 50%;
   display: flex;
   align-items: center;
   align-content: center;
