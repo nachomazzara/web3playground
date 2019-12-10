@@ -23,7 +23,7 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
 ### Share
 
-If you want to share what you did or you have an issue and needs help, you can upload and share it. It is using IPFS to make it fully decentralized.
+If you want to share what you did or you have an issue and need help, you can upload and share it. It is using IPFS to make it fully decentralized.
 
 - Click on `upload`
 - Copy & share the link 🚀
