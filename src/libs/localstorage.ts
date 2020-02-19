@@ -26,7 +26,11 @@ export function getLastUsedNetwork(): number {
 
 export function saveLastUsedContracts(contracts: LastUsedContracts) {
   window.localStorage.setItem(KEY_CONTRACTS, JSON.stringify(contracts))
-  saveLastUsedNetwork(getNetworkId())
+
+  const networkId = getNetworkId()
+  if (networkId) {
+    saveLastUsedNetwork(networkId)
+  }
 }
 
 export function getLastUsedContracts(): LastUsedContracts | null {
