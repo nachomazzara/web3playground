@@ -27,10 +27,14 @@ export async function getContract(address: string, toAddress?: string): Promise<
     return null
   }
 
-  return new web3.eth.Contract(
-    JSON.parse(abi.result),
-    toAddress || address
-  )
+  try {
+    return new web3.eth.Contract(
+      JSON.parse(abi.result),
+      toAddress || address
+    )
+  } catch (e) {
+    return null
+  }
 }
 
 export async function findABIForProxy(
