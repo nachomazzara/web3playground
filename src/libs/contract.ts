@@ -15,6 +15,10 @@ export const TOPICS_FOR_PROXYS = [
   {
     topic: '0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b', // Upgraded(address)
     dataIndex: 1
+  },
+  {
+    topic: '0x4d72fe0577a3a3f7da968d7b892779dde102519c25527b29cf7054f245c791b9', // Aragon's Initialization
+    indexed: 2
   }
 ]
 
