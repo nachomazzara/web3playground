@@ -24,7 +24,7 @@ export const TOPICS_FOR_PROXYS = [
 
 export async function getContract(address: string, toAddress?: string): Promise<Contract | null> {
   const web3 = await getWeb3Instance()
-  const res = await fetch(`${getAPI()}?module=contract&action=getabi&address=${address}`)
+  const res = await fetch(`${getAPI()}?module=contract&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=getabi&address=${address}`)
   const abi = await res.json()
 
   if (abi.result === 'Contract source code not verified') {
@@ -46,7 +46,7 @@ export async function findABIForProxy(
 ): Promise<string | undefined> {
   const web3 = await getWeb3Instance()
 
-  const api = `${getAPI()}?module=logs&action=getLogs&fromBlock=0&toBlock=latest&limit=1&address=${proxyAddress}&topic0=`
+  const api = `${getAPI()}?module=logs&action=getLogs&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&fromBlock=0&toBlock=latest&limit=1&address=${proxyAddress}&topic0=`
 
   let address
   for (let { topic, indexed, dataIndex } of TOPICS_FOR_PROXYS) {
@@ -86,7 +86,7 @@ async function getAddressByStorageSlot(
   proxyAddress: string
 ): Promise<string | undefined> {
   const res = await fetch(
-    `${getAPI()}?module=proxy&action=eth_getStorageAt&address=${proxyAddress}&position=0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3&tag=latest`
+    `${getAPI()}?module=proxy&action=eth_getStorageAt&address=${proxyAddress}&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&position=0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3&tag=latest`
   )
   const data = (await res.json()).result
 
@@ -100,7 +100,7 @@ async function getAddressByStorageSlot(
 
 export async function getAddressByMinimalProxy(web3: Web3, proxyAddress: string): Promise<string | undefined> {
   const res = await fetch(
-    `${getAPI()}?module=proxy&action=eth_getCode&address=${proxyAddress}`
+    `${getAPI()}?module=proxy&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=eth_getCode&address=${proxyAddress}`
   )
   const data = (await res.json()).result
 
