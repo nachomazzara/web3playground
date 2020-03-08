@@ -107,6 +107,12 @@ export default function Editor(props: Props) {
         saveLastUsedCode(code)
         editor.trigger('format', 'editor.action.formatDocument', null)
       })
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+        handleExecuteCode()
+      })
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_E, () => {
+        handleExecuteCode()
+      })
     }
   }
 
