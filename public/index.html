@@ -136,5 +136,10 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <script type="text/javascript">
+      window.onbeforeunload = function myConfirmation() {
+        return 'Are you sure you want to quit?';
+      }
+    </script>
   </body>
 </html>
