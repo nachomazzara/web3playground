@@ -20,6 +20,8 @@ import './Editor.css'
 
 export const OUTPUT_HEADLINE = '/***** Output *****/\n'
 
+let currentCode: string
+
 export default function Editor(props: Props) {
   const [code, setCode] = useState(defaultScript)
   const [copyText, setCopyText] = useState('Copy')
@@ -31,6 +33,9 @@ export default function Editor(props: Props) {
 
   let monacoRef = useRef<typeof monacoEditor | null>(null)
   let textareaRef: HTMLTextAreaElement
+
+  // Hack to make Monaco editor addCommand works
+  currentCode = code
 
   const instanceWindowVars = useCallback(async () => {
     // @ts-ignore
@@ -104,15 +109,17 @@ export default function Editor(props: Props) {
     const model = editor.getModel()
     if (model && model.getModeId() === 'typescript') {
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
-        saveLastUsedCode(code)
+        saveLastUsedCode(currentCode)
         editor.trigger('format', 'editor.action.formatDocument', null)
       })
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-        handleExecuteCode()
-      })
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_E, () => {
-        handleExecuteCode()
-      })
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+        handleExecuteCode
+      )
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_E,
+        handleExecuteCode
+      )
     }
   }
 
@@ -123,7 +130,7 @@ export default function Editor(props: Props) {
   }
 
   async function handleExecuteCode() {
-    saveLastUsedCode(code)
+    saveLastUsedCode(currentCode)
 
     let output: string
 
@@ -154,7 +161,7 @@ export default function Editor(props: Props) {
           console.log = function() {
             setOutputState(...arguments)
           }
-          ${code}
+          ${currentCode}
           return main()
         })()
       `)
@@ -200,7 +207,7 @@ export default function Editor(props: Props) {
   }
 
   function toggleModal() {
-    saveLastUsedCode(code)
+    saveLastUsedCode(currentCode)
     setIsModalOpen(!isModalOpen)
   }
 
@@ -249,7 +256,7 @@ export default function Editor(props: Props) {
           <MonacoEditor
             language="typescript"
             theme="vs-dark"
-            value={code}
+            value={currentCode}
             onChange={handleCodeChange}
             editorWillMount={editorWillMount}
             editorDidMount={editorDidMount}
