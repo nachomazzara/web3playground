@@ -1,5 +1,6 @@
 
 import { getNetworkId } from 'libs/web3'
+import { restoreBeforeUnload } from './beforeUnload'
 
 const KEY_BASE = 'web3playground-'
 const KEY_LAST_USED = `${KEY_BASE}last-used-`
@@ -40,6 +41,7 @@ export function getLastUsedContracts(): LastUsedContracts | null {
 
 export function saveLastUsedCode(code: string) {
   window.localStorage.setItem(KEY_CODE, code)
+  restoreBeforeUnload()
 }
 
 export function getLastUsedCode(): string | null {

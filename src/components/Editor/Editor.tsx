@@ -14,6 +14,7 @@ import { typeContractMethods } from 'libs/contract'
 import { getWeb3Instance } from 'libs/web3'
 import { isIOS } from 'libs/device'
 import { saveLastUsedCode, getLastUsedCode } from 'libs/localstorage'
+import { setBeforeUnload } from 'libs/beforeUnload'
 import { Props } from './types'
 
 import './Editor.css'
@@ -173,6 +174,7 @@ export default function Editor(props: Props) {
   }
 
   function handleCodeChange(newValue: string) {
+    setBeforeUnload()
     setCode(newValue)
   }
 

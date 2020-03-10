@@ -30,7 +30,6 @@ export default function Playground() {
 
   const currentNetwork = useNetwork()
 
-  // Did Mount
   useEffect(() => {
     async function loadContracts(lastUsedContracts: SelectedContract[]) {
       const newContracts = {}
@@ -266,7 +265,6 @@ export default function Playground() {
         <div className="isProxy">
           <input
             name="isProxy"
-            id="checkbox"
             type="checkbox"
             disabled={!address}
             onChange={handleIsProxyChange}
