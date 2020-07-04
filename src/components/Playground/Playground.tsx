@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback
+} from 'react'
 
 import Loader from 'components/Loader'
 import Editor from 'components/Editor'
@@ -12,6 +18,7 @@ import { omit, filter } from 'libs/utils'
 import { resolveHash } from 'libs/ipfs'
 import { useNetwork, getNetworkNameById } from 'libs/web3'
 import {
+  Props,
   SelectedContracts,
   SelectedContract,
   SelectedContractError
@@ -19,19 +26,20 @@ import {
 
 import './Playground.css'
 
-export default function Playground() {
+export default function Playground(props: Props) {
+  const { fileId, isMaximized, handleToggleMaximizeEditor } = props
+
   const [isLoading, setIsLoading] = useState(false)
-  const [isMaximized, setIsMaximized] = useState(false)
   const [contracts, setContracts] = useState<SelectedContracts>({})
   const [code, setCode] = useState(null)
-  const [network, setNetwork] = useState()
-  const [error, setError] = useState()
+  const [network, setNetwork] = useState<string>()
+  const [error, setError] = useState<{ message: string; hash: string }>()
   const isInitialMount = useRef(true)
 
   const currentNetwork = useNetwork()
 
-  useEffect(() => {
-    async function loadContracts(lastUsedContracts: SelectedContract[]) {
+  const loadContracts = useCallback(
+    async (lastUsedContracts: SelectedContract[]) => {
       const newContracts = {}
       for (let i = 0; i < lastUsedContracts.length; i++) {
         const contract = lastUsedContracts[i]
@@ -45,9 +53,12 @@ export default function Playground() {
       }
 
       setContracts(newContracts)
-    }
+    },
+    []
+  )
 
-    async function setPlaygroundByIPFS(hash: string) {
+  const setPlaygroundByIPFS = useCallback(
+    async (hash: string) => {
       setIsLoading(true)
       try {
         const data = await resolveHash(hash)
@@ -67,8 +78,11 @@ export default function Playground() {
       }
 
       setIsLoading(false)
-    }
+    },
+    [loadContracts]
+  )
 
+  useEffect(() => {
     const paths = window.location.pathname.split('/').splice(1)
     const hash = paths[0]
     if (hash) {
@@ -82,7 +96,13 @@ export default function Playground() {
         loadContracts(lastUsedContracts as SelectedContract[])
       }
     }
-  }, [currentNetwork])
+  }, [currentNetwork, loadContracts, setPlaygroundByIPFS])
+
+  useEffect(() => {
+    if (fileId) {
+      setPlaygroundByIPFS(fileId)
+    }
+  }, [fileId, setPlaygroundByIPFS])
 
   useLayoutEffect(() => {
     if (isInitialMount.current) {
@@ -284,10 +304,6 @@ export default function Playground() {
         {error && <div className="error">{error}</div>}
       </form>
     )
-  }
-
-  function handleToggleMaximizeEditor() {
-    setIsMaximized(!isMaximized)
   }
 
   return (

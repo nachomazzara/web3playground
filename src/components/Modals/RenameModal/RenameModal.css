@@ -1,0 +1,32 @@
+.RenameModal .form {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.RenameModal input {
+  font-size: 14px;
+  border: 1px solid black;
+  padding: 10px;
+  border-radius: 3px;
+  background: var(--input);
+  margin: 20px 0;
+  max-width: 500px;
+  width: 100%;
+  color: var(--text);
+  outline: none;
+}
+
+.RenameModal .modal-body button {
+  cursor: pointer;
+  padding: 8px 25px;
+  font-size: 12px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  outline: none;
+  color: var(--text);
+  background: var(--monaco);
+  border: 1px solid black;
+}

@@ -1,5 +1,6 @@
 import { getLastUsedNetwork, getLastUsedCode, getLastUsedContracts } from 'libs/localstorage'
 import { timeoutPromise } from 'libs/utils'
+import { File } from 'components/Files/types'
 
 const IPFS_RESOLVER = 'https://ipfs.io/ipfs/'
 const PINATA_RESOLVER = 'https://gateway.pinata.cloud/ipfs/'
@@ -60,4 +61,8 @@ export async function resolveHash(hash: string) {
 async function resolve(hash: string, resolver: string) {
   const res = await timeoutPromise(fetch(`${resolver}${hash}`), 30000)
   return res.json()
+}
+
+export function normalizeIPFSHash(hash: string): File {
+  return { name: hash, id: hash }
 }

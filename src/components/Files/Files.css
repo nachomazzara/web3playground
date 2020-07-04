@@ -1,0 +1,58 @@
+.Files {
+  margin: 5px 20px;
+  max-height: 100vh;
+  height: 100%;
+}
+
+.maximized > .Files {
+  height: 0;
+  margin: 0;
+  transition: max-height 0.1s ease-out, margin 0.1s ease-out;
+}
+
+.files-wrapper {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
+.file {
+  max-width: 200px;
+  min-width: 150px;
+  width: auto;
+  background: var(--input);
+  border-radius: 3px;
+  margin: 0 10px 10px 0;
+}
+
+.file.active {
+  background: var(--blue);
+}
+
+.file button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text);
+  cursor: pointer;
+  padding: 5px;
+  outline: none;
+  font-size: 12px;
+  user-select: none;
+}
+
+.file .name {
+  width: 90%;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.file .close {
+  width: 10%;
+  font-weight: bold;
+}

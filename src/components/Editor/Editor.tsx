@@ -245,7 +245,7 @@ export default function Editor(props: Props) {
               </button>
               <button onClick={toggleModal} title="Upload & Share">
                 <i className="icon upload" />
-                {'Upload'}
+                {'Save & Share'}
               </button>
             </div>
             <div className="col right">

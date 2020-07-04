@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import { isIOS } from 'libs/device'
-import { upload } from 'libs/ipfs'
+import { upload, normalizeIPFSHash } from 'libs/ipfs'
+import { saveFile } from 'libs/localstorage'
 import Modal from '../Modal'
+import { AppContext } from 'components/App'
 import { Props } from './types'
 
 import './UploadModal.css'
 
 export default function UploadModal(props: Props) {
+  const { refreshFiles } = useContext(AppContext)
   const [isLoading, setIsLoading] = useState(true)
-  const [ipfsHash, setIPFSHash] = useState<string | null>(null)
+  const [hash, setHash] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copyText, setCopyText] = useState('Copy')
   let textareaRef: HTMLTextAreaElement
@@ -35,29 +38,32 @@ export default function UploadModal(props: Props) {
     window.setTimeout(() => setCopyText('Copy'), 1000)
   }
 
-  async function handleUpload() {
+  const handleUpload = useCallback(async () => {
     setIsLoading(true)
     const { IpfsHash, error } = await upload()
     if (error) {
-      setIPFSHash(null)
+      setHash(null)
       setError(error)
     } else {
-      setIPFSHash(IpfsHash)
+      setHash(IpfsHash)
+      const file = normalizeIPFSHash(IpfsHash!)
+      saveFile(file)
+      refreshFiles(file)
       setError(null)
     }
     setIsLoading(false)
-  }
+  }, [refreshFiles])
 
   useEffect(() => {
     handleUpload()
-  }, [])
+  }, [handleUpload])
 
-  const hashLink = `${window.location.origin}/${ipfsHash}`
+  const hashLink = `${window.location.origin}/${hash}`
 
   return (
     <Modal onClose={props.onClose} className="UploadModal" title="Share">
       {isLoading && <p>Uploading...</p>}
-      {ipfsHash && (
+      {hash && (
         <div>
           <p>{hashLink}</p>
           <textarea
