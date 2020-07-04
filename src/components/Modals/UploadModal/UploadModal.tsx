@@ -46,8 +46,9 @@ export default function UploadModal(props: Props) {
       setError(error)
     } else {
       setHash(IpfsHash)
-      saveFile(normalizeIPFSHash(IpfsHash!))
-      refreshFiles()
+      const file = normalizeIPFSHash(IpfsHash!)
+      saveFile(file)
+      refreshFiles(file)
       setError(null)
     }
     setIsLoading(false)

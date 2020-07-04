@@ -5,6 +5,6 @@ export type File = {
 
 export type Props = {
   files: File[]
-  currentFileId?: string
+  currentFile?: File
   handleFileSelected: (file: File) => void
 }

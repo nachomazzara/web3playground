@@ -2,6 +2,7 @@
 import { getNetworkId } from 'libs/web3'
 
 import { restoreBeforeUnload } from './beforeUnload'
+import { normalizeIPFSHash } from './ipfs'
 import { File } from 'components/Files/types'
 
 const KEY_BASE = 'web3playground-'
@@ -47,6 +48,22 @@ export function removeFile(file: File) {
   const files = saveFiles.filter(savedFile => savedFile.id !== file.id)
 
   window.localStorage.setItem(KEY_FILES, JSON.stringify(files))
+}
+
+export function renameFile(file: File) {
+  const saveFiles = getFiles()
+  for (let i = 0; i < saveFiles.length; i++) {
+    if (saveFiles[i].id === file.id) {
+      saveFiles[i].name = file.name
+      window.localStorage.setItem(KEY_FILES, JSON.stringify(saveFiles))
+      return
+    }
+  }
+}
+
+export function getFileFromHash(hash: string) {
+  const files = getFiles()
+  return files.filter(file => file.id === hash)[0] || normalizeIPFSHash(hash)
 }
 
 // Network

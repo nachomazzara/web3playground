@@ -4,19 +4,22 @@ import { AppContext } from './AppContext'
 import Playground from 'components/Playground'
 import Files from 'components/Files'
 import { File } from 'components/Files/types'
-import { saveFile, getFiles } from 'libs/localstorage'
+import { saveFile, getFiles, getFileFromHash } from 'libs/localstorage'
 
 export default function App() {
   const [files, setFiles] = useState<File[]>(getFiles())
   const [isMaximized, setIsMaximized] = useState(false)
-  const [currentFileId, setCurrentFileId] = useState<string>()
+  const [currentFile, setCurrentFile] = useState<File>()
 
   function selectFile(file: File) {
-    setCurrentFileId(file.id)
+    setCurrentFile(file)
   }
 
-  const refreshFiles = useCallback(() => {
+  const refreshFiles = useCallback((file?: File) => {
     setFiles(getFiles())
+    if (file) {
+      setCurrentFile(file)
+    }
   }, [])
 
   // Component will mount
@@ -24,8 +27,10 @@ export default function App() {
     const paths = window.location.pathname.split('/').splice(1)
     const hash = paths[0]
     if (hash) {
-      setCurrentFileId(hash)
-      saveFile({ name: hash, id: hash })
+      const file = getFileFromHash(hash)
+
+      setCurrentFile(file)
+      saveFile(file)
       refreshFiles()
     }
   }, [refreshFiles])
@@ -39,11 +44,11 @@ export default function App() {
       <div className={`${isMaximized ? 'maximized' : ''}`}>
         <Files
           files={files}
-          currentFileId={currentFileId}
+          currentFile={currentFile}
           handleFileSelected={selectFile}
         />
         <Playground
-          fileId={currentFileId}
+          fileId={currentFile ? currentFile.id : undefined}
           isMaximized={isMaximized}
           handleToggleMaximizeEditor={handleToggleMaximizeEditor}
         />

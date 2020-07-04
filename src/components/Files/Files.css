@@ -1,4 +1,5 @@
 .Files {
+  width: 85%;
   margin: 5px 20px;
   max-height: 100vh;
   height: 100%;
@@ -18,7 +19,9 @@
 }
 
 .file {
-  max-width: 220px;
+  max-width: 200px;
+  min-width: 150px;
+  width: auto;
   background: var(--input);
   border-radius: 3px;
   margin: 0 10px 10px 0;
@@ -43,6 +46,7 @@
 
 .file .name {
   width: 90%;
+  text-align: left;
   text-overflow: ellipsis;
   overflow: hidden;
   cursor: pointer;

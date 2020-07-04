@@ -12,6 +12,13 @@
   max-height: 100vh;
 }
 
+.Playground .header .network {
+  position: absolute;
+  right: 0;
+  margin-right: 20px;
+  top: 0;
+}
+
 .Playground .header .network p {
   display: flex;
   font-size: 13px;
