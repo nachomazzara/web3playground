@@ -18,6 +18,7 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 - Choose a name for the variable.
 - If the contract is upgradeable by using the proxy pattern, select the checkbox.
 - Code.
+  _( - Right click to rename the files)_
 
 <img width="1028" alt="Screen Shot 2019-11-24 at 19 48 21" src="https://user-images.githubusercontent.com/7549152/69502939-61ddf780-0ef3-11ea-9dc3-8ec3e5cded25.png">
 
@@ -25,7 +26,7 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 
 If you want to share what you did or you have an issue and need help, you can upload and share it. It is using IPFS to make it fully decentralized.
 
-- Click on `upload`
+- Click on `Save & Share`
 - Copy & share the link 🚀
 
 ### Examples
@@ -110,14 +111,18 @@ If you want to share what you did or you have an issue and need help, you can up
 
 - #### **Can I refresh the browser?**
 
-  Yes! Contracts and code are stored at localstorage if any.
+  Yes! Contracts and code are stored at localstorage if any. Also, you can save it to IPFS.
 
 - #### **Can I contribute?**
 
   Yes! please, It will be awesome.
 
+- #### **Multiple snippet supports?**
+
+  Yeah!!!!!! 🚀
+
 ### Next
 
-- Share code snippets by hosting them on IPFS
+- Etherjs support
 
 [Donate ❤️](https://etherscan.com/address/0x2FFDbd3e8B682eDC3e7a9ced16Eba60423D3BFb6)
