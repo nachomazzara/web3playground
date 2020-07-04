@@ -1,5 +1,4 @@
 .Files {
-  width: 85%;
   margin: 5px 20px;
   max-height: 100vh;
   height: 100%;
@@ -25,7 +24,6 @@
   background: var(--input);
   border-radius: 3px;
   margin: 0 10px 10px 0;
-  border: 0 0 1px 1px solid;
 }
 
 .file.active {
@@ -42,6 +40,7 @@
   padding: 5px;
   outline: none;
   font-size: 12px;
+  user-select: none;
 }
 
 .file .name {

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 
 import { AppContext } from 'components/App'
 import { RenameModal } from 'components/Modals'
@@ -7,10 +7,13 @@ import { Props, File } from './types'
 
 import './Files.css'
 
+const divs: { div: HTMLDivElement; func: (e: MouseEvent) => void }[] = []
+
 export default function Files(props: Props) {
   const { files, currentFile, handleFileSelected } = props
   const { refreshFiles } = useContext(AppContext)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [fileToEdit, setFileToEdit] = useState(currentFile)
 
   function removeFileFromList(file: File) {
     removeFile(file)
@@ -21,20 +24,17 @@ export default function Files(props: Props) {
     handleFileSelected(file)
   }
 
-  if (document.addEventListener) {
-    document.addEventListener(
-      'contextmenu',
-      function(e) {
-        toggleModal()
-        e.preventDefault()
-      },
-      false
-    )
-  }
-
   function toggleModal() {
     setIsModalOpen(!isModalOpen)
   }
+
+  useEffect(() => {
+    return function cleanup() {
+      divs.forEach(({ div, func }) =>
+        div.removeEventListener('contextmenu', func)
+      )
+    }
+  }, [])
 
   return (
     <div className="Files">
@@ -45,6 +45,17 @@ export default function Files(props: Props) {
             className={`file ${
               currentFile && currentFile.id === file.id ? 'active' : ''
             }`}
+            ref={div => {
+              if (div && document.addEventListener) {
+                const func = (e: MouseEvent) => {
+                  setFileToEdit(file)
+                  toggleModal()
+                  e.preventDefault()
+                }
+                div.addEventListener('contextmenu', func, false)
+                divs.push({ div, func })
+              }
+            }}
           >
             <button className="name" onClick={() => selectFile(file)}>
               {file.name}
@@ -55,7 +66,7 @@ export default function Files(props: Props) {
           </div>
         ))}
       </div>
-      {isModalOpen && <RenameModal onClose={toggleModal} file={currentFile!} />}
+      {isModalOpen && <RenameModal onClose={toggleModal} file={fileToEdit!} />}
     </div>
   )
 }
