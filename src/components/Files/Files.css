@@ -55,4 +55,6 @@
 .file .close {
   width: 10%;
   font-weight: bold;
+  vertical-align: text-top;
+  margin-left: -2px;
 }
