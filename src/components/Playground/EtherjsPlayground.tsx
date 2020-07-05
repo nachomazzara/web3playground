@@ -8,7 +8,7 @@ import React, {
 
 import Loader from 'components/Loader'
 import EtherJsEditor from 'components/Editor/EtherJsEditor'
-import { findABIForProxy, getContract } from 'libs/contract'
+import { findABIForProxy, getContractEthers } from 'libs/contract'
 import {
   saveLastUsedContracts,
   getLastUsedContracts,
@@ -26,7 +26,7 @@ import {
 
 import './Playground.css'
 
-export default function Etherjslayground(props: Props) {
+export default function EtherjsPlayground(props: Props) {
   const { fileId, isMaximized, handleToggleMaximizeEditor } = props
 
   const [isLoading, setIsLoading] = useState(false)
@@ -220,10 +220,13 @@ export default function Etherjslayground(props: Props) {
     if (contract.isProxy) {
       const implementationAddress = await findABIForProxy(contract.address)
       if (implementationAddress) {
-        instance = await getContract(implementationAddress, contract.address)
+        instance = await getContractEthers(
+          implementationAddress,
+          contract.address
+        )
       }
     } else {
-      instance = await getContract(contract.address)
+      instance = await getContractEthers(contract.address)
     }
 
     if (!instance) {

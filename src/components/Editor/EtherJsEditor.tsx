@@ -1,23 +1,27 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import MonacoEditor from 'react-monaco-editor'
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api'
+import { ethers } from 'ethers'
 
 /* eslint import/no-webpack-loader-syntax: off */
 // @ts-ignore
-import editorTypes from '!!raw-loader!./web3Types.d.ts'
+import editorTypess from '!!raw-loader!./EtherjsTypes.d.ts'
+// @ts-ignore
+import bigNumberTypes from '!!raw-loader!./etherBignumber.d.ts'
 /* eslint import/no-webpack-loader-syntax: off */
 // @ts-ignore
-import defaultScript from '!!raw-loader!./defaultScript.js'
+import defaultScript from '!!raw-loader!./defaultEthersScript.js'
 import { SelectedContracts } from 'components/Playground/types'
 import { UploadModal } from 'components/Modals'
-import { typeContractMethods } from 'libs/contract'
-import { getWeb3Instance } from 'libs/web3'
+import { typeEtherJsContractMethods } from 'libs/contract'
 import { isIOS } from 'libs/device'
 import { saveLastUsedCode, getLastUsedCode } from 'libs/localstorage'
 import { setBeforeUnload } from 'libs/beforeUnload'
 import { Props } from './types'
 
 import './Editor.css'
+
+const editorTypes = bigNumberTypes.concat(editorTypess)
 
 export const OUTPUT_HEADLINE = '/***** Output *****/\n'
 
@@ -40,7 +44,11 @@ export default function EtherJsEditor(props: Props) {
 
   const instanceWindowVars = useCallback(async () => {
     // @ts-ignore
-    window['web3'] = await getWeb3Instance()
+    window['provider'] = new ethers.providers.Web3Provider(window.ethereum)
+    Object.keys(ethers).forEach(k => {
+      // @ts-ignore
+      window[k] = ethers[k]
+    })
 
     if (prevContracts) {
       Object.keys(prevContracts)
@@ -86,7 +94,7 @@ export default function EtherJsEditor(props: Props) {
   useEffect(() => {
     if (monacoRef.current) {
       monacoRef.current.languages.typescript.typescriptDefaults.addExtraLib(
-        typeContractMethods(editorTypes, props.contracts),
+        typeEtherJsContractMethods(editorTypes, props.contracts),
         'index.d.ts'
       )
       instanceWindowVars()
@@ -95,7 +103,7 @@ export default function EtherJsEditor(props: Props) {
 
   function editorWillMount(monaco: typeof monacoEditor) {
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
-      typeContractMethods(editorTypes, props.contracts),
+      typeEtherJsContractMethods(editorTypes, props.contracts),
       'index.d.ts'
     )
 

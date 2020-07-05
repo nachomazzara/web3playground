@@ -1,5 +1,6 @@
 import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract/types'
+import ethers, { Contract as EthersContract } from 'ethers'
 
 import { getWeb3Instance, getAPI } from './web3'
 import { SelectedContracts } from 'components/Playground/types'
@@ -35,6 +36,26 @@ export async function getContract(address: string, toAddress?: string): Promise<
     return new web3.eth.Contract(
       JSON.parse(abi.result),
       toAddress || address
+    )
+  } catch (e) {
+    return null
+  }
+}
+
+export async function getContractEthers(address: string, toAddress?: string): Promise<EthersContract | null> {
+  const res = await fetch(`${getAPI()}?module=contract&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=getabi&address=${address}`)
+  const abi = await res.json()
+
+  if (abi.result === 'Contract source code not verified') {
+    return null
+  }
+
+  try {
+    return new EthersContract(
+      toAddress || address,
+      JSON.parse(abi.result),
+      // @ts-ignore
+      new ethers.providers.Web3Provider(window.ethereum).getSigner()
     )
   } catch (e) {
     return null
@@ -127,7 +148,6 @@ export function sanitizeABI(abi: string) {
 
 // Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
 export function typeContractMethods(editorTypes: string, contracts: SelectedContracts) {
-  console.log(contracts)
   return editorTypes + Object.keys(contracts).filter(key => contracts[key].instance).map(key => {
     const contract = contracts[key].instance!
     const contractTypes = `declare var ${contracts[key].name}: Contract & {
@@ -165,7 +185,94 @@ export function typeContractMethods(editorTypes: string, contracts: SelectedCont
     }).join('\n')}
     }`
 
-    console.log(contractTypes)
+    return contractTypes
+
+  }).join('\n')
+}
+
+
+// Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
+export function typeEtherJsContractMethods(editorTypes: string, contracts: SelectedContracts) {
+  return editorTypes + Object.keys(contracts).filter(key => contracts[key].instance).map(key => {
+    const contract: EthersContract = (contracts[key].instance as EthersContract)!
+
+    const methodTypes = contract.interface.fragments.map((method: any) => {
+      let inputs = ''
+
+      if (!method.inputs || method.type === 'constructor') {
+        return ''
+      }
+
+      method.inputs.forEach((input: any, index: number) => {
+        if (index > 0) {
+          inputs += ', '
+        }
+
+        inputs += input.name
+          ? input.name
+          : method.inputs.length > 1
+            ? `${input.type}_${index}`
+            : input.type
+
+        if (input.type.indexOf('int') !== -1) {
+          inputs += ': number | string'
+        } else {
+          inputs += ': string'
+        }
+
+        if (input.type.indexOf('[]') !== -1) {
+          inputs += `[]`
+        }
+      })
+
+      // @TODO: with outputs
+      // let outputs = ''
+      // method.outputs.forEach((input: any, index: number) => {
+      //   if (index > 0) {
+      //     outputs += ', '
+      //   }
+
+      //   outputs += input.name
+      //     ? input.name
+      //     : method.outputs.length > 1
+      //       ? `${input.type}_${index}`
+      //       : input.type
+
+      //   if (input.type.indexOf('int') !== -1) {
+      //     outputs += ': number | string'
+      //   } else {
+      //     outputs += ': string'
+      //   }
+
+      //   if (input.type.indexOf('[]') !== -1) {
+      //     outputs += `[]`
+      //   }
+      // })
+
+      // return `${method.name}: (${inputs}) => ${method.constant ? `Promise<${outputs}>` : '____MethodResult'}`
+
+      return `${method.name}: (${inputs}) => ${method.constant ? '____any' : '____MethodResult'}`
+    }).join('\n')
+
+    const contractTypes = `declare var ${contracts[key].name}: Contract & {
+      readonly functions: {
+        ${methodTypes.replace(/____MethodResult/g, 'Promise<ContractTransaction>').replace(/____any/g, 'Promise<any>')}
+      }
+      readonly callStatic: {
+        ${methodTypes.replace(/____MethodResult/g, 'Promise<ContractTransaction>').replace(/____any/g, 'Promise<any>')}
+      }
+      readonly estimateGas: {
+        ${methodTypes.replace(/____MethodResult/g, 'Promise<BigNumber>').replace(/____any/g, 'Promise<BigNumber>')}
+      }
+      readonly populateTransaction: {
+        ${methodTypes.replace(/____MethodResult/g, 'Promise<PopulatedTransaction>').replace(/____any/g, 'Promise<PopulatedTransaction>')}
+      }
+      readonly filters: {
+        ${methodTypes.replace(/____MethodResult/g, '(...args: Array<any>) => EventFilter').replace(/____any/g, '(...args: Array<any>) => EventFilter')}
+      }
+      ${methodTypes.replace(/____MethodResult/g, 'Promise<ContractTransaction>').replace(/____any/g, 'Promise<any>')}
+    }`
+
     return contractTypes
 
   }).join('\n')

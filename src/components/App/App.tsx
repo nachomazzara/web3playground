@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { AppContext } from './AppContext'
-import Etherjslayground from 'components/Playground/EtherjsPlayground'
+import EtherjsPlayground from 'components/Playground/EtherjsPlayground'
 import Files from 'components/Files'
 import { File } from 'components/Files/types'
 import { saveFile, getFiles, getFileFromHash } from 'libs/localstorage'
@@ -47,7 +47,7 @@ export default function App() {
           currentFile={currentFile}
           handleFileSelected={selectFile}
         />
-        <Etherjslayground
+        <EtherjsPlayground
           fileId={currentFile ? currentFile.id : undefined}
           isMaximized={isMaximized}
           handleToggleMaximizeEditor={handleToggleMaximizeEditor}

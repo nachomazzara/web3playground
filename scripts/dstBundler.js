@@ -131,6 +131,7 @@ async function parseImports(path) {
 parseImports(initialPath).then(out => {
   // const pretty = out.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '').trim()
   const newOut = out
+    .replace(/export declare/g, 'declare')
     .replace(/export class/g, 'declare class')
     .replace(/export interface/g, 'declare interface')
     .replace(/export default/g, 'declare')
