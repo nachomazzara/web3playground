@@ -127,6 +127,7 @@ export function sanitizeABI(abi: string) {
 
 // Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
 export function typeContractMethods(editorTypes: string, contracts: SelectedContracts) {
+  console.log(contracts)
   return editorTypes + Object.keys(contracts).filter(key => contracts[key].instance).map(key => {
     const contract = contracts[key].instance!
     const contractTypes = `declare var ${contracts[key].name}: Contract & {
@@ -134,7 +135,7 @@ export function typeContractMethods(editorTypes: string, contracts: SelectedCont
       ${contract.options.jsonInterface.map((method: any) => {
       let inputs = ''
 
-      if (!method.inputs) {
+      if (!method.inputs || method.type === 'constructor') {
         return ''
       }
 
@@ -164,6 +165,7 @@ export function typeContractMethods(editorTypes: string, contracts: SelectedCont
     }).join('\n')}
     }`
 
+    console.log(contractTypes)
     return contractTypes
 
   }).join('\n')
