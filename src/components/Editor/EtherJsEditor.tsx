@@ -171,7 +171,7 @@ export default function EtherJsEditor(props: Props) {
             setOutputState(...arguments)
           }
           ${currentCode}
-          return main()
+          return main().catch(e => console.log(e.message))
         })()
       `)
       )
