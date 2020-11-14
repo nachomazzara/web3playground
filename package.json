@@ -63,7 +63,7 @@
     "ts-pnp": "1.1.4",
     "typescript": "3.7.2",
     "url-loader": "2.1.0",
-    "web3": "^1.2.2",
+    "web3": "^1.3.0",
     "webpack": "4.41.0",
     "webpack-dev-server": "3.2.1",
     "webpack-manifest-plugin": "2.1.1",
