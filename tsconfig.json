@@ -29,6 +29,7 @@
     "webpack",
     "jest",
     "src/setupTests.ts",
-    "src/components/Editor/defaultScript.js"
+    "src/components/Editor/defaultScript.js",
+    "types.d.ts"
   ]
 }

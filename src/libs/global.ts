@@ -17,6 +17,8 @@ export async function injectGlobals(
     }
     case LIB.ETHERS: {
       // @ts-ignore
+      window['ethers'] = ethers
+      // @ts-ignore
       window['provider'] = new ethers.providers.Web3Provider(window.ethereum)
       Object.keys(ethers).forEach(k => {
         // @ts-ignore

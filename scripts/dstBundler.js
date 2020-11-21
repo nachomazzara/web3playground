@@ -4,6 +4,7 @@
  * With love to Nacho
  */
 
+const { join } = require('path')
 const fs = require('fs-extra')
 const prettier = require('prettier')
 const DEBUG = true
@@ -128,21 +129,55 @@ async function parseImports(path) {
   }
   return lines.join('\n')
 }
-parseImports(initialPath).then(out => {
-  // const pretty = out.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '').trim()
-  const newOut = out
-    .replace(/export declare/g, 'declare')
-    .replace(/export class/g, 'declare class')
-    .replace(/export interface/g, 'declare interface')
-    .replace(/export default/g, 'declare')
-    .replace(/export type/g, 'declare type')
-    .replace(/export function/g, 'declare function')
-    .replace(/methods: any/g, 'contractMethods')
-    .replace(/^.*import .*$/gm, '')
-    .replace(/^.*export =.*$/gm, '')
-    .replace(/^.*export {.*$/gm, '')
-    .replace(/(\r\n|\r|\n){2,}/g, '$1\n')
-    .concat('\ndeclare var web3: Web3\n')
 
-  fs.writeFile(targetPath, newOut, 'utf8')
-})
+let newOut = []
+async function processDir(path) {
+  function writeOutputFile(out) {
+    // const pretty = out.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '').trim()
+    newOut +=
+      '\n' +
+      out
+        .replace(/export declare/g, 'declare')
+        .replace(/export class/g, 'declare class')
+        .replace(/export interface/g, 'declare interface')
+        .replace(/export default/g, 'declare')
+        .replace(/export type/g, 'declare type')
+        .replace(/export function/g, 'declare function')
+        .replace(/methods: any/g, 'contractMethods')
+        .replace(/^.*import .*$/gm, '')
+        .replace(/^.*export =.*$/gm, '')
+        .replace(/^.*export {.*$/gm, '')
+        .replace(/(\r\n|\r|\n){2,}/g, '$1\n')
+
+    fs.writeFile(targetPath, newOut, 'utf8')
+  }
+
+  fs.readdir(path, (e, dirs) => {
+    if (e) {
+      if (e.message.indexOf('not a directory') !== -1) {
+        parseImports(path)
+          .then(writeOutputFile)
+          .catch(e => console.log(e.message))
+        return
+      }
+      console.log('Error', e ? e.message : null, dirs)
+      return
+    }
+
+    dirs.forEach(async file => {
+      const fullPath = join(path, file)
+      const statFile = await fs.stat(fullPath)
+      if (statFile.isDirectory) {
+        processDir(fullPath)
+      } else {
+        parseImports(fullPath)
+          .then(writeOutputFile)
+          .catch(e => console.log(e.message))
+      }
+    })
+  })
+}
+
+processDir(initialPath)
+  .then(() => console.log('Done'))
+  .catch(e => console.error('Error', e.message))

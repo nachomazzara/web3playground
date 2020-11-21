@@ -585,6 +585,281 @@ declare class Logger {
   static setLogLevel(logLevel: LogLevel): void
 }
 
+declare class AbiCoder {
+  readonly coerceFunc: CoerceFunc
+  constructor(coerceFunc?: CoerceFunc)
+  _getCoder(param: ParamType): Coder
+  _getWordSize(): number
+  _getReader(data: Uint8Array): Reader
+  _getWriter(): Writer
+  encode(types: Array<string | ParamType>, values: Array<any>): string
+  decode(types: Array<string | ParamType>, data: BytesLike): Result
+}
+
+declare class utils {
+  AbiCoder: typeof AbiCoder
+  EventFragment()
+  FormatTypes: { sighash: "sighash", minimal: "minimal", full: "full", json: "json" }
+  Fragment(constructorGuard, params)
+  FunctionFragment()
+  HDNode(constructorGuard, privateKey, publicKey, parentFingerprint, chainCode, index, depth, mnemonicOrPath)
+  Indexed()
+  Interface(fragments$1)
+  LogDescription()
+  Logger(version)
+  ParamType(constructorGuard, params)
+  RLP: { __esModule: true, encode: any, decode: any }
+  SigningKey(privateKey)
+  SupportedAlgorithm: { sha256: "sha256", sha512: "sha512" }
+  TransactionDescription()
+  UnicodeNormalizationForm: { current: "", NFC: "NFC", NFD: "NFD", NFKC: "NFKC", NFKD: "NFKD" }
+  Utf8ErrorFuncs: { error: any, ignore: any, replace: any }
+  Utf8ErrorReason: { UNEXPECTED_CONTINUE: "unexpected continuation byte", BAD_PREFIX: "bad codepoint prefix", OVERRUN: "string overrun", MISSING_CONTINUE: "missing continuation byte", OUT_OF_RANGE: "out of UTF-8 range" }
+  arrayify(value, options)
+  base64: { __esModule: true, decode: any, encode: any }
+  checkProperties(object, properties)
+  checkResultErrors(result)
+  commify(value)
+  computeAddress(key)
+  computeHmac(algorithm, key, data)
+  computePublicKey(key, compressed)
+  concat(items)
+  deepCopy(object)
+  defaultAbiCoder: AbiCoder
+  defaultPath: "m/44'/60'/0'/0/0"
+  defineReadOnly(object, name, value)
+  entropyToMnemonic(entropy, wordlist)
+  fetchJson(connection, json, processFunc)
+  formatBytes32String(text)
+  formatEther(wei)
+  formatUnits(value, unitName)
+  getAddress(address)
+  getContractAddress(transaction)
+  getCreate2Address(from, salt, initCodeHash)
+  getIcapAddress(address)
+  getJsonWalletAddress(json)
+  getStatic(ctor, key)
+  hashMessage(message)
+  hexDataLength(data)
+  hexDataSlice(data, offset, endOffset)
+  hexStripZeros(value)
+  hexValue(value)
+  hexZeroPad(value, length)
+  hexlify(value, options)
+  id(text)
+  isAddress(address)
+  isBytes(value)
+  isBytesLike(value)
+  isHexString(value, length)
+  isValidMnemonic(mnemonic, wordlist)
+  isValidName(name)
+  joinSignature(signature)
+  keccak256(data)
+  mnemonicToEntropy(mnemonic, wordlist)
+  mnemonicToSeed(mnemonic, password)
+  namehash(name)
+  nameprep(value)
+  parseBytes32String(bytes)
+  parseEther(ether)
+  parse(rawTransaction)
+  parseUnits(value, unitName)
+  poll(func, options)
+  randomBytes(length)
+  recoverAddress(digest, signature)
+  recoverPublicKey(digest, signature)
+  resolveProperties(object)
+  ripemd160(data)
+  serialize(transaction, signature)
+  sha256(data)
+  sha512(data)
+  shallowCopy(object)
+  shuffled(array)
+  keccak256(types, values)
+  pack(types, values)
+  sha256(types, values)
+  splitSignature(signature)
+  stripZeros(value)
+  toUtf8Bytes(str, form)
+  toUtf8CodePoints(str, form)
+  toUtf8String(bytes, onError)
+  verifyMessage(message, signature)
+  zeroPad(value, length)
+  _toEscapedUtf8String(bytes, onError)
+}
+
+declare class JsonRpcSigner extends Signer {
+  readonly provider: JsonRpcProvider
+  _index: number
+  _address: string
+  constructor(constructorGuard: any, provider: JsonRpcProvider, addressOrIndex?: string | number)
+  connect(provider: Provider): JsonRpcSigner
+  connectUnchecked(): JsonRpcSigner
+  getAddress(): Promise<string>
+  sendUncheckedTransaction(transaction: Deferrable<TransactionRequest>): Promise<string>
+  signTransaction(transaction: Deferrable<TransactionRequest>): Promise<string>
+  sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse>
+  signMessage(message: Bytes | string): Promise<string>
+  _signTypedData(domain: TypedDataDomain, types: Record<string, Array<TypedDataField>>, value: Record<string, any>): Promise<string>
+  unlock(password: string): Promise<boolean>
+}
+
+declare class UncheckedJsonRpcSigner extends JsonRpcSigner {
+  sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse>
+}
+
+declare abstract class JsonRpcProvider {
+  readonly connection: ConnectionInfo
+  _pendingFilter: Promise<number>
+  _nextId: number
+  constructor(url?: ConnectionInfo | string, network?: Networkish)
+  static defaultUrl(): string
+  detectNetwork(): Promise<Network>
+  getSigner(addressOrIndex?: string | number): JsonRpcSigner
+  getUncheckedSigner(addressOrIndex?: string | number): UncheckedJsonRpcSigner
+  listAccounts(): Promise<Array<string>>
+  send(method: string, params: Array<any>): Promise<any>
+  prepareRequest(method: string, params: any): [string, Array<any>]
+  perform(method: string, params: any): Promise<any>
+  _startEvent(event: Event): void
+  _startPending(): void
+  _stopEvent(event: Event): void
+  static hexlifyTransaction(transaction: TransactionRequest, allowExtra?: {
+    [key: string]: boolean
+  }): {
+    [key: string]: string
+  }
+}
+
+declare abstract class UrlJsonRpcProvider {
+  readonly apiKey: any
+  constructor(network?: Networkish, apiKey?: any)
+  _startPending(): void
+  isCommunityResource(): boolean
+  getSigner(address?: string): JsonRpcSigner
+  listAccounts(): Promise<Array<string>>
+  static getApiKey(apiKey: any): any
+  static getUrl(network: Network, apiKey: any): string | ConnectionInfo
+}
+
+declare class AlchemyProvider extends UrlJsonRpcProvider {
+  static getWebSocketProvider(network, apiKey): Provider
+  static getApiKey(apiKey): string
+  static getUrl(network, apiKey): string
+}
+
+declare class InfuraProvider extends UrlJsonRpcProvider {
+  static getWebSocketProvider(network, apiKey): Provider
+  static getApiKey(apiKey): string
+  static getUrl(network, apiKey): string
+}
+
+declare class IpcProvider extends JsonRpcProvider {
+  readonly path: string
+  constructor(path: string, network?: Networkish)
+  send(method: string, params: Array<any>): Promise<any>
+}
+
+declare class NodesmithProvider extends UrlJsonRpcProvider {
+  static getApiKey(apiKey: any): any
+  static getUrl(network: Network, apiKey?: any): string
+}
+
+declare class Web3Provider extends JsonRpcProvider {
+  readonly provider: ExternalProvider
+  readonly jsonRpcFetchFunc: JsonRpcFetchFunc
+  constructor(provider: ExternalProvider | JsonRpcFetchFunc, network?: Networkish)
+  new(provider: ExternalProvider | JsonRpcFetchFunc, network?: Networkish)
+  send(method: string, params: Array<any>): Promise<any>
+}
+
+declare class WebSocketProvider extends JsonRpcProvider {
+  readonly _websocket: any
+  constructor(url: string, network?: Networkish)
+  get pollingInterval(): number
+  resetEventsBlock(blockNumber: number): void
+  set pollingInterval(value: number)
+  poll(): Promise<void>
+  set polling(value: boolean)
+  send(method: string, params?: Array<any>): Promise<any>
+  static defaultUrl(): string
+  _subscribe(tag: string, param: Array<any>, processFunc: (result: any) => void): Promise<void>
+  _startEvent(event: Event): void
+  _stopEvent(event: Event): void
+}
+
+declare class CloudflareProvider extends UrlJsonRpcProvider {
+  static getApiKey(apiKey: any): any
+  static getUrl(network: Network, apiKey?: any): string
+  perform(method: string, params: any): Promise<any>
+}
+
+declare class Ethers {
+  BigNumber: BigNumber
+  Contract: Contract
+  ContractFactory: Contract
+  FixedNumber: FixedNumber
+  Signer: Signer
+  VoidSigner: VoidSigner
+  Wallet: Wallet
+  Wordlist: Wordlist
+  constants: {
+    AddressZero: "0x0000000000000000000000000000000000000000"
+    EtherSymbol: "Ξ"
+    HashZero: "0x0000000000000000000000000000000000000000000000000000000000000000"
+    MaxUint256: BigNumber
+    NegativeOne: BigNumber
+    One: BigNumber
+    Two: BigNumber
+    WeiPerEther: BigNumber
+    Zero: BigNumber
+  }
+  errors: {
+    BUFFER_OVERRUN: "BUFFER_OVERRUN"
+    CALL_EXCEPTION: "CALL_EXCEPTION"
+    INSUFFICIENT_FUNDS: "INSUFFICIENT_FUNDS"
+    INVALID_ARGUMENT: "INVALID_ARGUMENT"
+    MISSING_ARGUMENT: "MISSING_ARGUMENT"
+    MISSING_NEW: "MISSING_NEW"
+    NETWORK_ERROR: "NETWORK_ERROR"
+    NONCE_EXPIRED: "NONCE_EXPIRED"
+    NOT_IMPLEMENTED: "NOT_IMPLEMENTED"
+    NUMERIC_FAULT: "NUMERIC_FAULT"
+    REPLACEMENT_UNDERPRICED: "REPLACEMENT_UNDERPRICED"
+    SERVER_ERROR: "SERVER_ERROR"
+    TIMEOUT: "TIMEOUT"
+    UNEXPECTED_ARGUMENT: "UNEXPECTED_ARGUMENT"
+    UNKNOWN_ERROR: "UNKNOWN_ERROR"
+    UNPREDICTABLE_GAS_LIMIT: "UNPREDICTABLE_GAS_LIMIT"
+    UNSUPPORTED_OPERATION: "UNSUPPORTED_OPERATION"
+  }
+  getDefaultProvider(network, options): Provider
+  logger: { version: "ethers/5.0.4" }
+  providers: {
+    AlchemyProvider: typeof AlchemyProvider
+    BaseProvider: typeof BaseProvider
+    CloudflareProvider: typeof CloudflareProvider
+    EtherscanProvider: typeof EtherscanProvider
+    FallbackProvider: typeof FallbackProvider
+    Formatter: typeof Formatter
+    InfuraProvider: typeof InfuraProvider
+    IpcProvider: typeof null
+    JsonRpcProvider: typeof JsonRpcProvider
+    JsonRpcSigner: typeof JsonRpcSigner
+    NodesmithProvider: typeof NodesmithProvider
+    Provider: typeof Provider
+    StaticJsonRpcProvider: typeof StaticJsonRpcProvider
+    UrlJsonRpcProvider: typeof UrlJsonRpcProvider
+    Web3Provider: typeof Web3Provider
+    WebSocketProvider: typeof WebSocketProvider
+    getDefaultProvider: typeof getDefaultProvider
+    getNetwork: typeof getNetwork
+  }
+  utils: utils
+  version: "ethers/5.0.4"
+}
+
 declare const logger: utils.Logger
 
 declare const provider: Provider
+
+declare const ethers: Ethers

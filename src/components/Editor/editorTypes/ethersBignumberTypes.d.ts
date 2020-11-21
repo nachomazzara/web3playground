@@ -74,3 +74,30 @@ declare class BigNumber implements Hexable {
   static from(value: any): BigNumber
   static isBigNumber(value: any): value is BigNumber
 }
+
+declare class FixedNumber {
+  readonly format: FixedFormat
+  readonly _hex: string
+  readonly _value: string
+  readonly _isFixedNumber: boolean
+  constructor(constructorGuard: any, hex: string, value: string, format?: FixedFormat)
+  _checkFormat(other: FixedNumber): void
+  addUnsafe(other: FixedNumber): FixedNumber
+  subUnsafe(other: FixedNumber): FixedNumber
+  mulUnsafe(other: FixedNumber): FixedNumber
+  divUnsafe(other: FixedNumber): FixedNumber
+  floor(): FixedNumber
+  ceiling(): FixedNumber
+  round(decimals?: number): FixedNumber
+  isZero(): boolean
+  isNegative(): boolean
+  toString(): string
+  toHexString(width?: number): string
+  toUnsafeFloat(): number
+  toFormat(format: FixedFormat | string): FixedNumber
+  static fromValue(value: BigNumber, decimals?: BigNumberish, format?: FixedFormat | string): FixedNumber
+  static fromString(value: string, format?: FixedFormat | string): FixedNumber
+  static fromBytes(value: BytesLike, format?: FixedFormat | string): FixedNumber
+  static from(value: any, format?: FixedFormat | string): FixedNumber
+  static isFixedNumber(value: any): value is FixedNumber
+}
