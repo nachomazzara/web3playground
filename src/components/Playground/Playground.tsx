@@ -261,6 +261,7 @@ export default function Playground(props: Props) {
         [newContract.address]: {
           ...newContract,
           instance: instance ? instance.contract : null,
+          abi: instance ? instance.abi : [],
           error
         }
       })
