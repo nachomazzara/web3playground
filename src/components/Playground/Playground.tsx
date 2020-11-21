@@ -8,15 +8,18 @@ import React, {
 
 import Loader from 'components/Loader'
 import Editor from 'components/Editor'
-import { findABIForProxy, getContract } from 'libs/contract'
+import { findABIForProxy, getContract, buildContract } from 'libs/contract'
 import {
   saveLastUsedContracts,
   getLastUsedContracts,
-  getLastUsedNetwork
+  getLastUsedNetwork,
+  saveLastUsedLibrary,
+  getLastUsedLibrary
 } from 'libs/localstorage'
 import { omit, filter } from 'libs/utils'
 import { resolveHash } from 'libs/ipfs'
 import { useNetwork, getNetworkNameById } from 'libs/web3'
+import { LIB } from '../../constants'
 import {
   Props,
   SelectedContracts,
@@ -29,41 +32,116 @@ import './Playground.css'
 export default function Playground(props: Props) {
   const { fileId, isMaximized, handleToggleMaximizeEditor } = props
 
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(0)
   const [contracts, setContracts] = useState<SelectedContracts>({})
   const [code, setCode] = useState(null)
   const [network, setNetwork] = useState<string>()
   const [error, setError] = useState<{ message: string; hash: string }>()
+  const [library, setLibrary] = useState(getLastUsedLibrary())
   const isInitialMount = useRef(true)
 
   const currentNetwork = useNetwork()
+  const isLoading = !!loading
+
+  const handleLoading = useCallback((shouldLoad: boolean) => {
+    setLoading(loading => (shouldLoad ? loading + 1 : loading - 1))
+  }, [])
+
+  const getContractInstance = useCallback(
+    async (contract: SelectedContract, library: LIB) => {
+      handleLoading(true)
+
+      let instance = null
+      let error: SelectedContractError = null
+
+      if (contract.isProxy) {
+        const implementationAddress = await findABIForProxy(contract.address)
+        if (implementationAddress) {
+          instance = await getContract(
+            implementationAddress,
+            library,
+            contract.address
+          )
+        }
+      } else {
+        instance = await getContract(contract.address, library)
+      }
+
+      if (!instance) {
+        error = (
+          <p>
+            {'No implementation found. Please contact me'}
+            <a
+              href="https://twitter.com/nachomazzara"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {'@nachomazzara'}
+            </a>
+          </p>
+        )
+      }
+
+      handleLoading(false)
+
+      return { instance, error }
+    },
+    [handleLoading]
+  )
 
   const loadContracts = useCallback(
-    async (lastUsedContracts: SelectedContract[]) => {
+    async (lastUsedContracts: SelectedContract[], library: LIB) => {
       const newContracts = {}
       for (let i = 0; i < lastUsedContracts.length; i++) {
         const contract = lastUsedContracts[i]
-        const { instance, error } = await getContractInstance(contract)
+        const { instance, error } = await getContractInstance(contract, library)
 
         newContracts[contract.address] = {
           ...contract,
-          instance,
+          abi: instance ? instance.abi : null,
+          instance: instance ? instance.contract : null,
           error
         }
       }
 
       setContracts(newContracts)
     },
-    []
+    [getContractInstance]
+  )
+
+  const reloadContracts = useCallback(
+    async (library: LIB) => {
+      handleLoading(true)
+
+      const newContracts = {}
+      for (const address in contracts) {
+        const contract = contracts[address]
+        const instance = await buildContract(library, contract.abi, address)
+
+        newContracts[contract.address] = {
+          ...contract,
+          instance,
+          error: null
+        }
+      }
+
+      setContracts(newContracts)
+      handleLoading(false)
+    },
+    [contracts, handleLoading]
   )
 
   const setPlaygroundByIPFS = useCallback(
     async (hash: string) => {
-      setIsLoading(true)
+      handleLoading(true)
       try {
         const data = await resolveHash(hash)
+        const lib = data.library || LIB.WEB3
+
+        setLibrary(lib)
+
         if (data.contracts) {
-          loadContracts(data.contracts)
+          await loadContracts(data.contracts, lib)
         }
 
         if (data.network) {
@@ -77,25 +155,29 @@ export default function Playground(props: Props) {
         setError({ message: e.message, hash })
       }
 
-      setIsLoading(false)
+      handleLoading(false)
     },
-    [loadContracts]
+    [loadContracts, handleLoading]
   )
 
   useEffect(() => {
-    const paths = window.location.pathname.split('/').splice(1)
-    const hash = paths[0]
-    if (hash) {
-      setPlaygroundByIPFS(hash)
-    } else {
-      const lastUsedContracts = getLastUsedContracts()
-      const lastUsedNetwork = getLastUsedNetwork()
+    if (currentNetwork) {
+      const paths = window.location.pathname.split('/').splice(1)
+      const hash = paths[0]
+      if (hash) {
+        setPlaygroundByIPFS(hash)
+      } else {
+        const lastUsedContracts = getLastUsedContracts()
+        const lastUsedNetwork = getLastUsedNetwork()
 
-      if (lastUsedContracts) {
-        setNetwork(getNetworkNameById(lastUsedNetwork))
-        loadContracts(lastUsedContracts as SelectedContract[])
+        if (lastUsedContracts) {
+          setNetwork(getNetworkNameById(lastUsedNetwork))
+          loadContracts(lastUsedContracts as SelectedContract[], library)
+        }
       }
     }
+    // I'm sorry but library is a weird thing and I don't have more time. I failed you
+    // eslint-disable-next-line
   }, [currentNetwork, loadContracts, setPlaygroundByIPFS])
 
   useEffect(() => {
@@ -168,13 +250,16 @@ export default function Playground(props: Props) {
         newContract.isProxy = false
       }
 
-      const { instance, error } = await getContractInstance(newContract)
+      const { instance, error } = await getContractInstance(
+        newContract,
+        library
+      )
 
       setContracts({
         ...omit(contracts, prevValue),
         [newContract.address]: {
           ...newContract,
-          instance,
+          instance: instance ? instance.contract : null,
           error
         }
       })
@@ -195,13 +280,13 @@ export default function Playground(props: Props) {
       newContract.isProxy = false
     }
 
-    const { instance, error } = await getContractInstance(newContract)
+    const { instance, error } = await getContractInstance(newContract, library)
 
     setContracts({
       ...contracts,
       [newContract.address]: {
         ...newContract,
-        instance,
+        instance: instance ? instance.contract : null,
         error
       }
     })
@@ -211,39 +296,15 @@ export default function Playground(props: Props) {
     setContracts(omit(contracts, address))
   }
 
-  async function getContractInstance(contract: SelectedContract) {
-    setIsLoading(true)
+  function handleChangeLibrary(library: LIB) {
+    handleLoading(true)
 
-    let instance = null
-    let error: SelectedContractError = null
+    setLibrary(library)
+    saveLastUsedLibrary(library)
 
-    if (contract.isProxy) {
-      const implementationAddress = await findABIForProxy(contract.address)
-      if (implementationAddress) {
-        instance = await getContract(implementationAddress, contract.address)
-      }
-    } else {
-      instance = await getContract(contract.address)
-    }
+    reloadContracts(library)
 
-    if (!instance) {
-      error = (
-        <p>
-          {'No implementation found. Please contact me'}
-          <a
-            href="https://twitter.com/nachomazzara"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {'@nachomazzara'}
-          </a>
-        </p>
-      )
-    }
-
-    setIsLoading(false)
-
-    return { instance, error }
+    handleLoading(false)
   }
 
   function renderContract(contract?: SelectedContract) {
@@ -291,7 +352,7 @@ export default function Playground(props: Props) {
             checked={contract ? contract.isProxy : false}
           />
           <label htmlFor="checkbox">
-            {'Upgradable contract using the proxy pattern'}{' '}
+            {'Upgradable contract using a proxy pattern'}{' '}
             <a
               target="_blank"
               href="https://github.com/nachomazzara/web3playground#which-proxy-implementations-are-supported"
@@ -320,7 +381,19 @@ export default function Playground(props: Props) {
           )}
         </div>
         <div className="title">
-          <h1>Web3 Playground</h1>
+          <div>
+            <h1>{`${library.toLowerCase()} Playground`}</h1>
+            {library !== LIB.WEB3 && (
+              <button onClick={() => handleChangeLibrary(LIB.WEB3)}>
+                Switch to Web3
+              </button>
+            )}
+            {library !== LIB.ETHERS && (
+              <button onClick={() => handleChangeLibrary(LIB.ETHERS)}>
+                Switch to Ethers
+              </button>
+            )}
+          </div>
           <div className="menu">
             <a
               target="_blank"
@@ -346,6 +419,8 @@ export default function Playground(props: Props) {
         initCode={code}
         isMaximized={isMaximized}
         onChangeSize={handleToggleMaximizeEditor}
+        library={library}
+        isLoading={isLoading && !!currentNetwork}
       />
     </div>
   )

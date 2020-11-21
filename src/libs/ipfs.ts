@@ -1,4 +1,9 @@
-import { getLastUsedNetwork, getLastUsedCode, getLastUsedContracts } from 'libs/localstorage'
+import {
+  getLastUsedNetwork,
+  getLastUsedCode,
+  getLastUsedContracts,
+  getLastUsedLibrary
+} from 'libs/localstorage'
 import { timeoutPromise } from 'libs/utils'
 import { File } from 'components/Files/types'
 
@@ -8,7 +13,8 @@ const PINATA_RESOLVER = 'https://gateway.pinata.cloud/ipfs/'
 // I know that I am exposing secret keys but it is in purpose!
 export async function upload() {
   const pinataAPIKey = '41d9d533daec1ccef42a'
-  const pinataSecretAPIKey = '1721c608c98314394260fb427e6f7ba6ace1e1876ebc4b645387f95bb77eacf0'
+  const pinataSecretAPIKey =
+    '1721c608c98314394260fb427e6f7ba6ace1e1876ebc4b645387f95bb77eacf0'
 
   const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`
 
@@ -16,6 +22,7 @@ export async function upload() {
     network: getLastUsedNetwork(),
     contracts: getLastUsedContracts(),
     code: getLastUsedCode(),
+    library: getLastUsedLibrary()
   }
 
   const json = JSON.stringify(obj)
@@ -24,18 +31,17 @@ export async function upload() {
   })
 
   const data = new FormData()
-  data.append("file", blob, `web3playground-${Date.now()}.json`)
+  data.append('file', blob, `web3playground-${Date.now()}.json`)
 
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'pinata_api_key': pinataAPIKey,
-        'pinata_secret_api_key': pinataSecretAPIKey
+        pinata_api_key: pinataAPIKey,
+        pinata_secret_api_key: pinataSecretAPIKey
       },
-      body: data,
-    }
-    )
+      body: data
+    })
 
     return res.json()
   } catch (e) {

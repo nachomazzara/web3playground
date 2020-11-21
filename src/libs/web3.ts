@@ -64,13 +64,12 @@ export function getNetworkName() {
 }
 
 export function getNetworkId() {
-  return chainId;
+  return chainId
 }
 
 export function getAPI(): string {
   const network = getNetworkNameById(chainId)
-  return `https://api${
-    network !== 'mainnet' ? `-${network}` : ''
+  return `https://api${network !== 'mainnet' ? `-${network}` : ''
     }.etherscan.io/api`
 }
 

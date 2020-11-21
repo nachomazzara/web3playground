@@ -1,9 +1,9 @@
-
 import { getNetworkId } from 'libs/web3'
 
 import { restoreBeforeUnload } from './beforeUnload'
 import { normalizeIPFSHash } from './ipfs'
 import { File } from 'components/Files/types'
+import { LIB } from '../constants'
 
 const KEY_BASE = 'web3playground-'
 const KEY_FILES = `${KEY_BASE}files`
@@ -11,6 +11,7 @@ const KEY_NETWORK = `${KEY_BASE}network`
 const KEY_LAST_USED = `${KEY_BASE}last-used-`
 const KEY_CONTRACTS = `${KEY_LAST_USED}contracts`
 const KEY_CODE = `${KEY_LAST_USED}code`
+const KEY_LIBRARY = `${KEY_LAST_USED}library`
 
 export type LastUsedContracts = {
   name: string
@@ -100,4 +101,15 @@ export function saveLastUsedCode(code: string) {
 export function getLastUsedCode(): string | null {
   const data = window.localStorage.getItem(KEY_CODE)
   return data ? data : null
+}
+
+// Library
+export function saveLastUsedLibrary(library: LIB) {
+  window.localStorage.setItem(KEY_LIBRARY, library)
+  restoreBeforeUnload()
+}
+
+export function getLastUsedLibrary(): LIB {
+  const data = window.localStorage.getItem(KEY_LIBRARY)
+  return data ? (data as LIB) : LIB.WEB3
 }

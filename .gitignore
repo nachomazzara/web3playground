@@ -10,6 +10,7 @@
 
 # production
 /build
+/types.d.ts
 
 # misc
 .DS_Store
