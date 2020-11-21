@@ -4,7 +4,7 @@ import { AbiItem } from 'web3-utils'
 import ethers, { Contract as EthersContract } from 'ethers'
 
 import { getWeb3Instance, getAPI } from './web3'
-import { SelectedContracts } from 'components/Playground/types'
+import { SelectedContracts, ABI } from 'components/Playground/types'
 import { LIB } from '../constants'
 
 export const EMPTY_SLOT =
@@ -48,15 +48,15 @@ export async function getContract(
     return null
   }
 
-  const contract = await buildContract(library, abi, toAddress || address)
-  return contract ? { contract, abi } : null
+  const contract = await buildContract(
+    library,
+    abi.result,
+    toAddress || address
+  )
+  return contract ? { contract, abi: abi.result } : null
 }
 
-export function buildContract(
-  library: LIB,
-  abi: AbiItem | ethers.ethers.ContractInterface,
-  address: string
-) {
+export function buildContract(library: LIB, abi: ABI, address: string) {
   switch (library) {
     case LIB.WEB3:
       return getContractWeb3(abi, address)
@@ -75,8 +75,9 @@ export async function getContractWeb3(
 ): Promise<Contract | null> {
   const web3 = await getWeb3Instance()
   try {
-    return new web3.eth.Contract(JSON.parse(abi.result), address)
+    return new web3.eth.Contract(JSON.parse(abi), address)
   } catch (e) {
+    console.warn(e.message)
     return null
   }
 }
@@ -88,11 +89,12 @@ export async function getContractEthers(
   try {
     return new EthersContract(
       address,
-      JSON.parse(abi.result),
+      JSON.parse(abi),
       // @ts-ignore
       new ethers.providers.Web3Provider(window.ethereum).getSigner()
     )
   } catch (e) {
+    console.warn(e.message)
     return null
   }
 }

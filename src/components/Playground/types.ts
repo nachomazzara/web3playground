@@ -4,6 +4,8 @@ import { AbiItem } from 'web3-utils'
 
 import { Contract as EthersContract, ethers } from 'ethers'
 
+export type ABI = AbiItem | ethers.ContractInterface
+
 export type Props = {
   fileId?: string
   isMaximized: boolean
@@ -17,7 +19,7 @@ export type SelectedContract = {
   address: string
   name: string
   isProxy: boolean
-  abi: AbiItem | ethers.ContractInterface
+  abi: ABI
   error?: SelectedContractError
 }
 
