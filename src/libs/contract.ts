@@ -25,6 +25,11 @@ export const TOPICS_FOR_PROXYS = [
   }
 ]
 
+export const SLOTS_FOR_PROXYS = [
+  '0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3', // Zep
+  '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc' // EIP 1967
+]
+
 export async function getContract(
   address: string,
   library: LIB,
@@ -85,22 +90,25 @@ export async function findABIForProxy(
   proxyAddress: string
 ): Promise<string | undefined> {
   const web3 = await getWeb3Instance()
-
   const api = `${getAPI()}?module=logs&action=getLogs&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&fromBlock=0&toBlock=latest&limit=1&address=${proxyAddress}&topic0=`
 
   let address
   for (let { topic, indexed, dataIndex } of TOPICS_FOR_PROXYS) {
-    const res = await fetch(`${api}${topic}`)
-    const data = await res.json()
-    if (data.result.length > 0 && typeof data.result !== 'string') {
-      const event = data.result.pop()
-      address = indexed
-        ? getAddressByTopic(event, indexed!)
-        : getAddressByData(event, dataIndex!)
+    try {
+      const res = await fetch(`${api}${topic}`)
+      const data = await res.json()
+      if (data.result.length > 0 && typeof data.result !== 'string') {
+        const event = data.result.pop()
+        address = indexed
+          ? getAddressByTopic(event, indexed!)
+          : getAddressByData(event, dataIndex!)
 
-      if (address) {
-        return address
+        if (address && address !== '0x' && address !== ZERO_ADDRESS) {
+          return address
+        }
       }
+    } catch (e) {
+      console.warn(e.messge)
     }
   }
 
@@ -129,17 +137,25 @@ async function getAddressByStorageSlot(
   web3: Web3,
   proxyAddress: string
 ): Promise<string | undefined> {
-  const res = await fetch(
-    `${getAPI()}?module=proxy&action=eth_getStorageAt&address=${proxyAddress}&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&position=0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3&tag=latest`
-  )
-  const data = (await res.json()).result
+  for (const storage of SLOTS_FOR_PROXYS) {
+    try {
+      const res = await fetch(
+        `${getAPI()}?module=proxy&action=eth_getStorageAt&address=${proxyAddress}&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&position=${storage}&tag=latest`
+      )
+      const data = (await res.json()).result
 
-  let address
-  if (data && web3.utils.isAddress(data.slice(-40))) {
-    address = `0x${data.slice(-40)}`
+      let address
+      if (data && web3.utils.isAddress(data.slice(-40))) {
+        address = `0x${data.slice(-40)}`
+      }
+
+      if (address && address !== '0x' && address !== ZERO_ADDRESS) {
+        return address
+      }
+    } catch (e) {
+      // Do Nothing
+    }
   }
-
-  return address
 }
 
 export async function getAddressByMinimalProxy(

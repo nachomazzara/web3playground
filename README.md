@@ -1,6 +1,6 @@
-# Web3 Playground
+# Ethereum EVM Compatible Playground Automagically typed
 
-Test your contracts by creating your custom code snippets. Web3 1.X.X ready to be used.
+Test your contracts by creating your custom code snippets by using [Web3 1.X.X](https://github.com/ethereum/web3.js/) or [Ethers 5.0.X](https://github.com/ethers-io/ethers.js) ready to be used and automagically typed.
 
 ### [Try it](https://web3playground.io)
 
@@ -10,7 +10,6 @@ Test your contracts by creating your custom code snippets. Web3 1.X.X ready to b
 - [Share](#share)
 - [Examples](#examples)
 - [FAQ](#faq)
-- [Next](#next)
 
 ### How it works
 
@@ -101,6 +100,8 @@ If you want to share what you did or you have an issue and need help, you can up
 
   - Implementation made by [OpenZeppelin](https://docs.openzeppelin.com/sdk/2.5/writing-contracts.html). Searching for the storage slot `0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3`
 
+  - [EIP-1967 Standard Proxy Storage Slots](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1967.md)).
+
 - #### **Which chains are supported?**
 
   Every RCP call is made to the network selected in your provider.
@@ -120,9 +121,5 @@ If you want to share what you did or you have an issue and need help, you can up
 - #### **Multiple snippet supports?**
 
   Yeah!!!!!! 🚀
-
-### Next
-
-- Etherjs support
 
 [Donate ❤️](https://etherscan.com/address/0x2FFDbd3e8B682eDC3e7a9ced16Eba60423D3BFb6)
