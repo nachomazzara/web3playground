@@ -6,5 +6,6 @@ export type Props = {
   contracts: SelectedContracts
   isMaximized: boolean
   initCode: string | null
+  isLoading: boolean
   onChangeSize: () => void
 }

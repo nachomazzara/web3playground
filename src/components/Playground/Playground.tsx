@@ -138,17 +138,19 @@ export default function Playground(props: Props) {
   )
 
   useEffect(() => {
-    const paths = window.location.pathname.split('/').splice(1)
-    const hash = paths[0]
-    if (hash) {
-      setPlaygroundByIPFS(hash)
-    } else {
-      const lastUsedContracts = getLastUsedContracts()
-      const lastUsedNetwork = getLastUsedNetwork()
+    if (currentNetwork) {
+      const paths = window.location.pathname.split('/').splice(1)
+      const hash = paths[0]
+      if (hash) {
+        setPlaygroundByIPFS(hash)
+      } else {
+        const lastUsedContracts = getLastUsedContracts()
+        const lastUsedNetwork = getLastUsedNetwork()
 
-      if (lastUsedContracts) {
-        setNetwork(getNetworkNameById(lastUsedNetwork))
-        loadContracts(lastUsedContracts as SelectedContract[])
+        if (lastUsedContracts) {
+          setNetwork(getNetworkNameById(lastUsedNetwork))
+          loadContracts(lastUsedContracts as SelectedContract[])
+        }
       }
     }
   }, [currentNetwork, loadContracts, setPlaygroundByIPFS])
@@ -267,8 +269,14 @@ export default function Playground(props: Props) {
   }
 
   function handleChangeLibrary(library: LIB) {
+    handleLoading(true)
     setLibrary(library)
     saveLastUsedLibrary(library)
+
+    const lastUsedContracts = getLastUsedContracts()
+    loadContracts(lastUsedContracts as SelectedContract[], library)
+
+    handleLoading(false)
   }
 
   function renderContract(contract?: SelectedContract) {
@@ -367,18 +375,17 @@ export default function Playground(props: Props) {
         {Object.keys(contracts).map(key => renderContract(contracts[key]))}
         {renderContract()}
       </div>
-      {!isLoading && (
-        <Editor
-          contracts={filter(
-            contracts,
-            (contract: SelectedContract) => !contract.error
-          )}
-          initCode={code}
-          isMaximized={isMaximized}
-          onChangeSize={handleToggleMaximizeEditor}
-          library={library}
-        />
-      )}
+      <Editor
+        contracts={filter(
+          contracts,
+          (contract: SelectedContract) => !contract.error
+        )}
+        initCode={code}
+        isMaximized={isMaximized}
+        onChangeSize={handleToggleMaximizeEditor}
+        library={library}
+        isLoading={isLoading && !!currentNetwork}
+      />
     </div>
   )
 }

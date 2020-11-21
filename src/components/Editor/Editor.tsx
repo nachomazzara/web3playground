@@ -19,7 +19,14 @@ export const OUTPUT_HEADLINE = '/***** Output *****/\n'
 let currentCode: string
 
 export default function Editor(props: Props) {
-  const { contracts, library, initCode, isMaximized, onChangeSize } = props
+  const {
+    contracts,
+    library,
+    initCode,
+    isMaximized,
+    onChangeSize,
+    isLoading
+  } = props
 
   const defaultScript = getDefaultScript(library)
   const editorTypes = getEditorTypes(library)
@@ -66,14 +73,14 @@ export default function Editor(props: Props) {
   }, [initCode])
 
   useEffect(() => {
-    if (monacoRef.current) {
+    if (monacoRef.current && !isLoading) {
       monacoRef.current.languages.typescript.typescriptDefaults.addExtraLib(
         typeContractMethods(editorTypes, contracts, library),
         'index.d.ts'
       )
       instanceWindowVars()
     }
-  }, [editorTypes, contracts, instanceWindowVars, library])
+  }, [editorTypes, contracts, instanceWindowVars, library, isLoading])
 
   function editorWillMount(monaco: typeof monacoEditor) {
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
