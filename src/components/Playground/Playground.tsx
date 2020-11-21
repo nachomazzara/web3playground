@@ -12,11 +12,14 @@ import { findABIForProxy, getContract } from 'libs/contract'
 import {
   saveLastUsedContracts,
   getLastUsedContracts,
-  getLastUsedNetwork
+  getLastUsedNetwork,
+  saveLastUsedLibrary,
+  getLastUsedLibrary
 } from 'libs/localstorage'
 import { omit, filter } from 'libs/utils'
 import { resolveHash } from 'libs/ipfs'
 import { useNetwork, getNetworkNameById } from 'libs/web3'
+import { LIB } from '../../constants'
 import {
   Props,
   SelectedContracts,
@@ -29,21 +32,69 @@ import './Playground.css'
 export default function Playground(props: Props) {
   const { fileId, isMaximized, handleToggleMaximizeEditor } = props
 
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(0)
   const [contracts, setContracts] = useState<SelectedContracts>({})
   const [code, setCode] = useState(null)
   const [network, setNetwork] = useState<string>()
   const [error, setError] = useState<{ message: string; hash: string }>()
+  const [library, setLibrary] = useState(getLastUsedLibrary())
   const isInitialMount = useRef(true)
 
   const currentNetwork = useNetwork()
+  const isLoading = !!loading
+
+  const handleLoading = useCallback((shouldLoad: boolean) => {
+    setLoading(loading => (shouldLoad ? loading + 1 : loading - 1))
+  }, [])
+
+  const getContractInstance = useCallback(
+    async (contract: SelectedContract, usedLibrary?: LIB) => {
+      handleLoading(true)
+
+      let instance = null
+      let error: SelectedContractError = null
+
+      if (contract.isProxy) {
+        const implementationAddress = await findABIForProxy(contract.address)
+        if (implementationAddress) {
+          instance = await getContract(
+            implementationAddress,
+            usedLibrary || library,
+            contract.address
+          )
+        }
+      } else {
+        instance = await getContract(contract.address, usedLibrary || library)
+      }
+
+      if (!instance) {
+        error = (
+          <p>
+            {'No implementation found. Please contact me'}
+            <a
+              href="https://twitter.com/nachomazzara"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {'@nachomazzara'}
+            </a>
+          </p>
+        )
+      }
+
+      handleLoading(false)
+
+      return { instance, error }
+    },
+    [library, handleLoading]
+  )
 
   const loadContracts = useCallback(
-    async (lastUsedContracts: SelectedContract[]) => {
+    async (lastUsedContracts: SelectedContract[], library?: LIB) => {
       const newContracts = {}
       for (let i = 0; i < lastUsedContracts.length; i++) {
         const contract = lastUsedContracts[i]
-        const { instance, error } = await getContractInstance(contract)
+        const { instance, error } = await getContractInstance(contract, library)
 
         newContracts[contract.address] = {
           ...contract,
@@ -54,16 +105,20 @@ export default function Playground(props: Props) {
 
       setContracts(newContracts)
     },
-    []
+    [getContractInstance]
   )
 
   const setPlaygroundByIPFS = useCallback(
     async (hash: string) => {
-      setIsLoading(true)
+      handleLoading(true)
       try {
         const data = await resolveHash(hash)
+        const lib = data.library || LIB.WEB3
+
+        setLibrary(lib)
+
         if (data.contracts) {
-          loadContracts(data.contracts)
+          await loadContracts(data.contracts, lib)
         }
 
         if (data.network) {
@@ -77,9 +132,9 @@ export default function Playground(props: Props) {
         setError({ message: e.message, hash })
       }
 
-      setIsLoading(false)
+      handleLoading(false)
     },
-    [loadContracts]
+    [loadContracts, handleLoading]
   )
 
   useEffect(() => {
@@ -211,39 +266,9 @@ export default function Playground(props: Props) {
     setContracts(omit(contracts, address))
   }
 
-  async function getContractInstance(contract: SelectedContract) {
-    setIsLoading(true)
-
-    let instance = null
-    let error: SelectedContractError = null
-
-    if (contract.isProxy) {
-      const implementationAddress = await findABIForProxy(contract.address)
-      if (implementationAddress) {
-        instance = await getContract(implementationAddress, contract.address)
-      }
-    } else {
-      instance = await getContract(contract.address)
-    }
-
-    if (!instance) {
-      error = (
-        <p>
-          {'No implementation found. Please contact me'}
-          <a
-            href="https://twitter.com/nachomazzara"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {'@nachomazzara'}
-          </a>
-        </p>
-      )
-    }
-
-    setIsLoading(false)
-
-    return { instance, error }
+  function handleChangeLibrary(library: LIB) {
+    setLibrary(library)
+    saveLastUsedLibrary(library)
   }
 
   function renderContract(contract?: SelectedContract) {
@@ -291,7 +316,7 @@ export default function Playground(props: Props) {
             checked={contract ? contract.isProxy : false}
           />
           <label htmlFor="checkbox">
-            {'Upgradable contract using the proxy pattern'}{' '}
+            {'Upgradable contract using a proxy pattern'}{' '}
             <a
               target="_blank"
               href="https://github.com/nachomazzara/web3playground#which-proxy-implementations-are-supported"
@@ -320,7 +345,7 @@ export default function Playground(props: Props) {
           )}
         </div>
         <div className="title">
-          <h1>Web3 Playground</h1>
+          <h1>{`${library.toLowerCase()} Playground`}</h1>
           <div className="menu">
             <a
               target="_blank"
@@ -329,6 +354,10 @@ export default function Playground(props: Props) {
             >
               {'How it works 👨‍💻'}
             </a>
+            <button onClick={() => handleChangeLibrary(LIB.WEB3)}>Web3</button>
+            <button onClick={() => handleChangeLibrary(LIB.ETHERS)}>
+              Ethers
+            </button>
           </div>
         </div>
         {error && (
@@ -338,15 +367,18 @@ export default function Playground(props: Props) {
         {Object.keys(contracts).map(key => renderContract(contracts[key]))}
         {renderContract()}
       </div>
-      <Editor
-        contracts={filter(
-          contracts,
-          (contract: SelectedContract) => !contract.error
-        )}
-        initCode={code}
-        isMaximized={isMaximized}
-        onChangeSize={handleToggleMaximizeEditor}
-      />
+      {!isLoading && (
+        <Editor
+          contracts={filter(
+            contracts,
+            (contract: SelectedContract) => !contract.error
+          )}
+          initCode={code}
+          isMaximized={isMaximized}
+          onChangeSize={handleToggleMaximizeEditor}
+          library={library}
+        />
+      )}
     </div>
   )
 }

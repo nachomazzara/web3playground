@@ -4,8 +4,10 @@ import ethers, { Contract as EthersContract } from 'ethers'
 
 import { getWeb3Instance, getAPI } from './web3'
 import { SelectedContracts } from 'components/Playground/types'
+import { LIB } from '../constants'
 
-export const EMPTY_SLOT = '0x0000000000000000000000000000000000000000000000000000000000000000'
+export const EMPTY_SLOT =
+  '0x0000000000000000000000000000000000000000000000000000000000000000'
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export const TOPICS_FOR_PROXYS = [
@@ -23,33 +25,50 @@ export const TOPICS_FOR_PROXYS = [
   }
 ]
 
-export async function getContract(address: string, toAddress?: string): Promise<Contract | null> {
-  const web3 = await getWeb3Instance()
-  const res = await fetch(`${getAPI()}?module=contract&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=getabi&address=${address}`)
+export async function getContract(
+  address: string,
+  library: LIB,
+  toAddress?: string
+): Promise<Contract | EthersContract | null> {
+  const res = await fetch(
+    `${getAPI()}?module=contract&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=getabi&address=${address}`
+  )
   const abi = await res.json()
 
   if (abi.result === 'Contract source code not verified') {
     return null
   }
 
+  switch (library) {
+    case LIB.WEB3:
+      return getContractWeb3(abi, address, toAddress)
+    case LIB.ETHERS:
+      return getContractEthers(abi, address, toAddress)
+    default: {
+      console.warn('Invalid Lib')
+      return null
+    }
+  }
+}
+
+export async function getContractWeb3(
+  abi: any,
+  address: string,
+  toAddress?: string
+): Promise<Contract | null> {
+  const web3 = await getWeb3Instance()
   try {
-    return new web3.eth.Contract(
-      JSON.parse(abi.result),
-      toAddress || address
-    )
+    return new web3.eth.Contract(JSON.parse(abi.result), toAddress || address)
   } catch (e) {
     return null
   }
 }
 
-export async function getContractEthers(address: string, toAddress?: string): Promise<EthersContract | null> {
-  const res = await fetch(`${getAPI()}?module=contract&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=getabi&address=${address}`)
-  const abi = await res.json()
-
-  if (abi.result === 'Contract source code not verified') {
-    return null
-  }
-
+export async function getContractEthers(
+  abi: any,
+  address: string,
+  toAddress?: string
+): Promise<EthersContract | null> {
   try {
     return new EthersContract(
       toAddress || address,
@@ -73,11 +92,12 @@ export async function findABIForProxy(
   for (let { topic, indexed, dataIndex } of TOPICS_FOR_PROXYS) {
     const res = await fetch(`${api}${topic}`)
     const data = await res.json()
-    if (data.result.length > 0) {
+    if (data.result.length > 0 && typeof data.result !== 'string') {
       const event = data.result.pop()
       address = indexed
         ? getAddressByTopic(event, indexed!)
         : getAddressByData(event, dataIndex!)
+
       if (address) {
         return address
       }
@@ -86,7 +106,10 @@ export async function findABIForProxy(
 
   address = await getAddressByStorageSlot(web3, proxyAddress)
 
-  if (!address || (address && (address === EMPTY_SLOT || address === ZERO_ADDRESS))) {
+  if (
+    !address ||
+    (address && (address === EMPTY_SLOT || address === ZERO_ADDRESS))
+  ) {
     address = await getAddressByMinimalProxy(web3, proxyAddress)
   }
 
@@ -119,7 +142,10 @@ async function getAddressByStorageSlot(
   return address
 }
 
-export async function getAddressByMinimalProxy(web3: Web3, proxyAddress: string): Promise<string | undefined> {
+export async function getAddressByMinimalProxy(
+  web3: Web3,
+  proxyAddress: string
+): Promise<string | undefined> {
   const res = await fetch(
     `${getAPI()}?module=proxy&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=eth_getCode&address=${proxyAddress}`
   )
@@ -146,134 +172,182 @@ export function sanitizeABI(abi: string) {
     )
 }
 
-// Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
-export function typeContractMethods(editorTypes: string, contracts: SelectedContracts) {
-  return editorTypes + Object.keys(contracts).filter(key => contracts[key].instance).map(key => {
-    const contract = contracts[key].instance!
-    const contractTypes = `declare var ${contracts[key].name}: Contract & {
-    methods: {
-      ${contract.options.jsonInterface.map((method: any) => {
-      let inputs = ''
-
-      if (!method.inputs || method.type === 'constructor') {
-        return ''
-      }
-
-      method.inputs.forEach((input: any, index: number) => {
-        if (index > 0) {
-          inputs += ', '
-        }
-
-        inputs += input.name
-          ? input.name
-          : method.inputs.length > 1
-            ? `${input.type}_${index}`
-            : input.type
-
-        if (input.type.indexOf('int') !== -1) {
-          inputs += ': number | string'
-        } else {
-          inputs += ': string'
-        }
-
-        if (input.type.indexOf('[]') !== -1) {
-          inputs += `[]`
-        }
-      })
-
-      return `${method.name}: (${inputs}) => any`
-    }).join('\n')}
-    }`
-
-    return contractTypes
-
-  }).join('\n')
+export function typeContractMethods(
+  editorTypes: string,
+  contracts: SelectedContracts,
+  library: LIB
+): string {
+  switch (library) {
+    case LIB.WEB3:
+      return typeWeb3ContractMethods(editorTypes, contracts)
+    case LIB.ETHERS:
+      return typeEthersContractMethods(editorTypes, contracts)
+    default:
+      return ''
+  }
 }
 
+// Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
+export function typeWeb3ContractMethods(
+  editorTypes: string,
+  contracts: SelectedContracts
+) {
+  return (
+    editorTypes +
+    Object.keys(contracts)
+      .filter(key => contracts[key].instance)
+      .map(key => {
+        const contract = contracts[key].instance!
+        const contractTypes = `declare var ${contracts[key].name}: Contract & {
+  methods: {
+    ${contract.options.jsonInterface
+            .map((method: any) => {
+              let inputs = ''
+
+              if (!method.inputs || method.type === 'constructor') {
+                return ''
+              }
+
+              method.inputs.forEach((input: any, index: number) => {
+                if (index > 0) {
+                  inputs += ', '
+                }
+
+                inputs += input.name
+                  ? input.name
+                  : method.inputs.length > 1
+                    ? `${input.type}_${index}`
+                    : input.type
+
+                if (input.type.indexOf('int') !== -1) {
+                  inputs += ': number | string'
+                } else {
+                  inputs += ': string'
+                }
+
+                if (input.type.indexOf('[]') !== -1) {
+                  inputs += `[]`
+                }
+              })
+
+              return `${method.name}: (${inputs}) => any`
+            })
+            .join('\n')}
+  }`
+
+        return contractTypes
+      })
+      .join('\n')
+  )
+}
 
 // Replace `methods: any` to `{ methodName: (params: types) Promise<any>}`
-export function typeEtherJsContractMethods(editorTypes: string, contracts: SelectedContracts) {
-  return editorTypes + Object.keys(contracts).filter(key => contracts[key].instance).map(key => {
-    const contract: EthersContract = (contracts[key].instance as EthersContract)!
+export function typeEthersContractMethods(
+  editorTypes: string,
+  contracts: SelectedContracts
+) {
+  return (
+    editorTypes +
+    Object.keys(contracts)
+      .filter(key => contracts[key].instance)
+      .map(key => {
+        const contract: EthersContract = (contracts[key]
+          .instance as EthersContract)!
 
-    const methodTypes = contract.interface.fragments.map((method: any) => {
-      let inputs = ''
+        const methodTypes = contract.interface.fragments
+          .map((method: any) => {
+            let inputs = ''
 
-      if (!method.inputs || method.type === 'constructor') {
-        return ''
-      }
+            if (!method.inputs || method.type === 'constructor') {
+              return ''
+            }
 
-      method.inputs.forEach((input: any, index: number) => {
-        if (index > 0) {
-          inputs += ', '
-        }
+            method.inputs.forEach((input: any, index: number) => {
+              if (index > 0) {
+                inputs += ', '
+              }
 
-        inputs += input.name
-          ? input.name
-          : method.inputs.length > 1
-            ? `${input.type}_${index}`
-            : input.type
+              inputs += input.name
+                ? input.name
+                : method.inputs.length > 1
+                  ? `${input.type}_${index}`
+                  : input.type
 
-        if (input.type.indexOf('int') !== -1) {
-          inputs += ': number | string'
-        } else {
-          inputs += ': string'
-        }
+              if (input.type.indexOf('int') !== -1) {
+                inputs += ': number | string'
+              } else {
+                inputs += ': string'
+              }
 
-        if (input.type.indexOf('[]') !== -1) {
-          inputs += `[]`
-        }
-      })
+              if (input.type.indexOf('[]') !== -1) {
+                inputs += `[]`
+              }
+            })
 
-      // @TODO: with outputs
-      // let outputs = ''
-      // method.outputs.forEach((input: any, index: number) => {
-      //   if (index > 0) {
-      //     outputs += ', '
-      //   }
+            // @TODO: with outputs
+            // let outputs = ''
+            // method.outputs.forEach((input: any, index: number) => {
+            //   if (index > 0) {
+            //     outputs += ', '
+            //   }
 
-      //   outputs += input.name
-      //     ? input.name
-      //     : method.outputs.length > 1
-      //       ? `${input.type}_${index}`
-      //       : input.type
+            //   outputs += input.name
+            //     ? input.name
+            //     : method.outputs.length > 1
+            //       ? `${input.type}_${index}`
+            //       : input.type
 
-      //   if (input.type.indexOf('int') !== -1) {
-      //     outputs += ': number | string'
-      //   } else {
-      //     outputs += ': string'
-      //   }
+            //   if (input.type.indexOf('int') !== -1) {
+            //     outputs += ': number | string'
+            //   } else {
+            //     outputs += ': string'
+            //   }
 
-      //   if (input.type.indexOf('[]') !== -1) {
-      //     outputs += `[]`
-      //   }
-      // })
+            //   if (input.type.indexOf('[]') !== -1) {
+            //     outputs += `[]`
+            //   }
+            // })
 
-      // return `${method.name}: (${inputs}) => ${method.constant ? `Promise<${outputs}>` : '____MethodResult'}`
+            // return `${method.name}: (${inputs}) => ${method.constant ? `Promise<${outputs}>` : '____MethodResult'}`
 
-      return `${method.name}: (${inputs}) => ${method.constant ? '____any' : '____MethodResult'}`
-    }).join('\n')
+            return `${method.name}: (${inputs}) => ${method.constant ? '____any' : '____MethodResult'
+              }`
+          })
+          .join('\n')
 
-    const contractTypes = `declare var ${contracts[key].name}: Contract & {
+        const contractTypes = `declare var ${contracts[key].name}: Contract & {
       readonly functions: {
-        ${methodTypes.replace(/____MethodResult/g, 'Promise<ContractTransaction>').replace(/____any/g, 'Promise<any>')}
+        ${methodTypes
+            .replace(/____MethodResult/g, 'Promise<ContractTransaction>')
+            .replace(/____any/g, 'Promise<any>')}
       }
       readonly callStatic: {
-        ${methodTypes.replace(/____MethodResult/g, 'Promise<ContractTransaction>').replace(/____any/g, 'Promise<any>')}
+        ${methodTypes
+            .replace(/____MethodResult/g, 'Promise<ContractTransaction>')
+            .replace(/____any/g, 'Promise<any>')}
       }
       readonly estimateGas: {
-        ${methodTypes.replace(/____MethodResult/g, 'Promise<BigNumber>').replace(/____any/g, 'Promise<BigNumber>')}
+        ${methodTypes
+            .replace(/____MethodResult/g, 'Promise<BigNumber>')
+            .replace(/____any/g, 'Promise<BigNumber>')}
       }
       readonly populateTransaction: {
-        ${methodTypes.replace(/____MethodResult/g, 'Promise<PopulatedTransaction>').replace(/____any/g, 'Promise<PopulatedTransaction>')}
+        ${methodTypes
+            .replace(/____MethodResult/g, 'Promise<PopulatedTransaction>')
+            .replace(/____any/g, 'Promise<PopulatedTransaction>')}
       }
       readonly filters: {
-        ${methodTypes.replace(/____MethodResult/g, '(...args: Array<any>) => EventFilter').replace(/____any/g, '(...args: Array<any>) => EventFilter')}
+        ${methodTypes
+            .replace(/____MethodResult/g, '(...args: Array<any>) => EventFilter')
+            .replace(/____any/g, '(...args: Array<any>) => EventFilter')}
       }
-      ${methodTypes.replace(/____MethodResult/g, 'Promise<ContractTransaction>').replace(/____any/g, 'Promise<any>')}
+      ${methodTypes
+            .replace(/____MethodResult/g, 'Promise<ContractTransaction>')
+            .replace(/____any/g, 'Promise<any>')}
     }`
 
-    return contractTypes
-
-  }).join('\n')
+        return contractTypes
+      })
+      .join('\n')
+  )
 }

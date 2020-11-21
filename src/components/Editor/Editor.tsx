@@ -2,35 +2,35 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import MonacoEditor from 'react-monaco-editor'
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api'
 
-/* eslint import/no-webpack-loader-syntax: off */
-// @ts-ignore
-import editorTypes from '!!raw-loader!./editorTypes.d.ts'
-/* eslint import/no-webpack-loader-syntax: off */
-// @ts-ignore
-import defaultScript from '!!raw-loader!./defaultScript.js'
 import { SelectedContracts } from 'components/Playground/types'
 import { UploadModal } from 'components/Modals'
 import { typeContractMethods } from 'libs/contract'
-import { getWeb3Instance } from 'libs/web3'
 import { isIOS } from 'libs/device'
 import { saveLastUsedCode, getLastUsedCode } from 'libs/localstorage'
 import { setBeforeUnload } from 'libs/beforeUnload'
+import { getEditorTypes, getDefaultScript } from './editorTypes'
 import { Props } from './types'
 
 import './Editor.css'
+import { injectGlobals } from 'libs/global'
 
 export const OUTPUT_HEADLINE = '/***** Output *****/\n'
 
 let currentCode: string
 
 export default function Editor(props: Props) {
+  const { contracts, library, initCode, isMaximized, onChangeSize } = props
+
+  const defaultScript = getDefaultScript(library)
+  const editorTypes = getEditorTypes(library)
+
   const [code, setCode] = useState(defaultScript)
   const [copyText, setCopyText] = useState('Copy')
   const [isRunning, setIsRunning] = useState(false)
   const [output, setOutput] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const prevContracts = usePrevious(props.contracts)
+  const prevContracts = usePrevious(contracts)
 
   let monacoRef = useRef<typeof monacoEditor | null>(null)
   let textareaRef: HTMLTextAreaElement
@@ -38,28 +38,10 @@ export default function Editor(props: Props) {
   // Hack to make Monaco editor addCommand works
   currentCode = code
 
-  const instanceWindowVars = useCallback(async () => {
-    // @ts-ignore
-    window['web3'] = await getWeb3Instance()
-
-    if (prevContracts) {
-      Object.keys(prevContracts)
-        .filter(key => prevContracts[key].instance)
-        .forEach(key => {
-          const contract = prevContracts[key]
-          delete window[contract.name]
-        })
-    }
-
-    if (props.contracts) {
-      Object.keys(props.contracts)
-        .filter(key => props.contracts[key].instance)
-        .forEach(key => {
-          const contract = props.contracts[key]
-          window[contract.name] = contract.instance
-        })
-    }
-  }, [props.contracts, prevContracts])
+  const instanceWindowVars = useCallback(
+    async () => injectGlobals(library, prevContracts, contracts),
+    [library, contracts, prevContracts]
+  )
 
   function usePrevious(value: SelectedContracts) {
     const ref = useRef<SelectedContracts>()
@@ -71,31 +53,31 @@ export default function Editor(props: Props) {
 
   // Did Mount
   useEffect(() => {
-    let initCode
-    if (props.initCode) {
-      initCode = props.initCode
+    let code
+    if (initCode) {
+      code = initCode
     } else {
-      initCode = getLastUsedCode()
+      code = getLastUsedCode()
     }
 
-    if (initCode) {
-      setCode(initCode)
+    if (code) {
+      setCode(code)
     }
-  }, [props.initCode])
+  }, [initCode])
 
   useEffect(() => {
     if (monacoRef.current) {
       monacoRef.current.languages.typescript.typescriptDefaults.addExtraLib(
-        typeContractMethods(editorTypes, props.contracts),
+        typeContractMethods(editorTypes, contracts, library),
         'index.d.ts'
       )
       instanceWindowVars()
     }
-  }, [props.contracts, instanceWindowVars])
+  }, [editorTypes, contracts, instanceWindowVars, library])
 
   function editorWillMount(monaco: typeof monacoEditor) {
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
-      typeContractMethods(editorTypes, props.contracts),
+      typeContractMethods(editorTypes, contracts, library),
       'index.d.ts'
     )
 
@@ -227,17 +209,17 @@ export default function Editor(props: Props) {
 
   return (
     <>
-      <div className={`Editor ${props.isMaximized ? ' maximized' : ''}`}>
+      <div className={`Editor ${isMaximized ? ' maximized' : ''}`}>
         <div className="code-wrapper">
           <div className="actions">
             <div className="col left">
-              <button onClick={props.onChangeSize} title="Hide">
-                {props.isMaximized ? (
+              <button onClick={onChangeSize} title="Hide">
+                {isMaximized ? (
                   <i className="icon hide" />
                 ) : (
                   <i className="icon maximize" />
                 )}
-                {props.isMaximized ? 'Minimize' : 'Maximize'}
+                {isMaximized ? 'Minimize' : 'Maximize'}
               </button>
               <button onClick={handleExecuteCode} title="Run">
                 <i className="icon run" />
