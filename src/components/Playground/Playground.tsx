@@ -24,7 +24,8 @@ import {
   Props,
   SelectedContracts,
   SelectedContract,
-  SelectedContractError
+  SelectedContractError,
+  ABI
 } from './types'
 
 import './Playground.css'
@@ -287,9 +288,53 @@ export default function Playground(props: Props) {
       [newContract.address]: {
         ...newContract,
         instance: instance ? instance.contract : null,
+        abi: instance ? instance.abi : [],
         error
       }
     })
+  }
+
+  async function handleABIChange(event: React.FormEvent<any>) {
+    event.preventDefault()
+
+    const newContract = fillSelectedContract(event)
+    newContract.isProxy = false
+
+    if (event.currentTarget.value.length) {
+      let instance = null
+      let error = null
+      let abi = event.currentTarget.value
+
+      try {
+        instance = await buildContract(library, abi, newContract.address)
+      } catch (e) {
+        error = e.message
+      }
+
+      setContracts({
+        ...contracts,
+        [newContract.address]: {
+          ...newContract,
+          abi,
+          instance,
+          error
+        }
+      })
+    } else {
+      const { instance, error } = await getContractInstance(
+        newContract,
+        library
+      )
+      setContracts({
+        ...contracts,
+        [newContract.address]: {
+          ...newContract,
+          instance: instance ? instance.contract : null,
+          abi: instance ? instance.abi : [],
+          error
+        }
+      })
+    }
   }
 
   function handleRemoveContract(address: string) {
@@ -308,14 +353,16 @@ export default function Playground(props: Props) {
   }
 
   function renderContract(contract?: SelectedContract) {
-    let address: string | undefined,
-      name: string | undefined,
-      error: SelectedContractError | undefined
+    let address: string | undefined
+    let name: string | undefined
+    let error: SelectedContractError | undefined
+    let abi: ABI | undefined
 
     if (contract) {
       address = contract.address
       name = contract.name
       error = contract.error
+      abi = contract.abi
     }
 
     return (
@@ -335,6 +382,13 @@ export default function Playground(props: Props) {
             value={name}
             disabled={!address}
             onChange={handleNameChange}
+          />
+          <input
+            name="abi"
+            type="text"
+            placeholder="ABI (optional)"
+            value={abi ? abi.toString() : ''}
+            onChange={e => handleABIChange(e)}
           />
           {address && (
             <i
