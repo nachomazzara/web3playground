@@ -1,5 +1,6 @@
 import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract/types'
+import { AbiItem } from 'web3-utils'
 import ethers, { Contract as EthersContract } from 'ethers'
 
 import { getWeb3Instance, getAPI } from './web3'
@@ -34,7 +35,10 @@ export async function getContract(
   address: string,
   library: LIB,
   toAddress?: string
-): Promise<Contract | EthersContract | null> {
+): Promise<{
+  contract: Contract | EthersContract
+  abi: AbiItem | ethers.ethers.ContractInterface
+} | null> {
   const res = await fetch(
     `${getAPI()}?module=contract&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=getabi&address=${address}`
   )
@@ -44,11 +48,20 @@ export async function getContract(
     return null
   }
 
+  const contract = await buildContract(library, abi, toAddress || address)
+  return contract ? { contract, abi } : null
+}
+
+export function buildContract(
+  library: LIB,
+  abi: AbiItem | ethers.ethers.ContractInterface,
+  address: string
+) {
   switch (library) {
     case LIB.WEB3:
-      return getContractWeb3(abi, address, toAddress)
+      return getContractWeb3(abi, address)
     case LIB.ETHERS:
-      return getContractEthers(abi, address, toAddress)
+      return getContractEthers(abi, address)
     default: {
       console.warn('Invalid Lib')
       return null
@@ -58,12 +71,11 @@ export async function getContract(
 
 export async function getContractWeb3(
   abi: any,
-  address: string,
-  toAddress?: string
+  address: string
 ): Promise<Contract | null> {
   const web3 = await getWeb3Instance()
   try {
-    return new web3.eth.Contract(JSON.parse(abi.result), toAddress || address)
+    return new web3.eth.Contract(JSON.parse(abi.result), address)
   } catch (e) {
     return null
   }
@@ -71,12 +83,11 @@ export async function getContractWeb3(
 
 export async function getContractEthers(
   abi: any,
-  address: string,
-  toAddress?: string
+  address: string
 ): Promise<EthersContract | null> {
   try {
     return new EthersContract(
-      toAddress || address,
+      address,
       JSON.parse(abi.result),
       // @ts-ignore
       new ethers.providers.Web3Provider(window.ethereum).getSigner()

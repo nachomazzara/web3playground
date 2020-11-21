@@ -8,7 +8,7 @@ import React, {
 
 import Loader from 'components/Loader'
 import Editor from 'components/Editor'
-import { findABIForProxy, getContract } from 'libs/contract'
+import { findABIForProxy, getContract, buildContract } from 'libs/contract'
 import {
   saveLastUsedContracts,
   getLastUsedContracts,
@@ -48,7 +48,7 @@ export default function Playground(props: Props) {
   }, [])
 
   const getContractInstance = useCallback(
-    async (contract: SelectedContract, usedLibrary?: LIB) => {
+    async (contract: SelectedContract, library: LIB) => {
       handleLoading(true)
 
       let instance = null
@@ -59,12 +59,12 @@ export default function Playground(props: Props) {
         if (implementationAddress) {
           instance = await getContract(
             implementationAddress,
-            usedLibrary || library,
+            library,
             contract.address
           )
         }
       } else {
-        instance = await getContract(contract.address, usedLibrary || library)
+        instance = await getContract(contract.address, library)
       }
 
       if (!instance) {
@@ -86,11 +86,11 @@ export default function Playground(props: Props) {
 
       return { instance, error }
     },
-    [library, handleLoading]
+    [handleLoading]
   )
 
   const loadContracts = useCallback(
-    async (lastUsedContracts: SelectedContract[], library?: LIB) => {
+    async (lastUsedContracts: SelectedContract[], library: LIB) => {
       const newContracts = {}
       for (let i = 0; i < lastUsedContracts.length; i++) {
         const contract = lastUsedContracts[i]
@@ -98,7 +98,8 @@ export default function Playground(props: Props) {
 
         newContracts[contract.address] = {
           ...contract,
-          instance,
+          abi: instance ? instance.abi : null,
+          instance: instance ? instance.contract : null,
           error
         }
       }
@@ -106,6 +107,28 @@ export default function Playground(props: Props) {
       setContracts(newContracts)
     },
     [getContractInstance]
+  )
+
+  const reloadContracts = useCallback(
+    async (library: LIB) => {
+      handleLoading(true)
+
+      const newContracts = {}
+      for (const address in contracts) {
+        const contract = contracts[address]
+        const instance = await buildContract(library, contract.abi, address)
+
+        newContracts[contract.address] = {
+          ...contract,
+          instance,
+          error: null
+        }
+      }
+
+      setContracts(newContracts)
+      handleLoading(false)
+    },
+    [contracts, handleLoading]
   )
 
   const setPlaygroundByIPFS = useCallback(
@@ -149,10 +172,12 @@ export default function Playground(props: Props) {
 
         if (lastUsedContracts) {
           setNetwork(getNetworkNameById(lastUsedNetwork))
-          loadContracts(lastUsedContracts as SelectedContract[])
+          loadContracts(lastUsedContracts as SelectedContract[], library)
         }
       }
     }
+    // I'm sorry but library is a weird thing and I don't have more time. I failed you
+    // eslint-disable-next-line
   }, [currentNetwork, loadContracts, setPlaygroundByIPFS])
 
   useEffect(() => {
@@ -225,13 +250,16 @@ export default function Playground(props: Props) {
         newContract.isProxy = false
       }
 
-      const { instance, error } = await getContractInstance(newContract)
+      const { instance, error } = await getContractInstance(
+        newContract,
+        library
+      )
 
       setContracts({
         ...omit(contracts, prevValue),
         [newContract.address]: {
           ...newContract,
-          instance,
+          instance: instance ? instance.contract : null,
           error
         }
       })
@@ -252,13 +280,13 @@ export default function Playground(props: Props) {
       newContract.isProxy = false
     }
 
-    const { instance, error } = await getContractInstance(newContract)
+    const { instance, error } = await getContractInstance(newContract, library)
 
     setContracts({
       ...contracts,
       [newContract.address]: {
         ...newContract,
-        instance,
+        instance: instance ? instance.contract : null,
         error
       }
     })
@@ -270,11 +298,11 @@ export default function Playground(props: Props) {
 
   function handleChangeLibrary(library: LIB) {
     handleLoading(true)
+
     setLibrary(library)
     saveLastUsedLibrary(library)
 
-    const lastUsedContracts = getLastUsedContracts()
-    loadContracts(lastUsedContracts as SelectedContract[], library)
+    reloadContracts(library)
 
     handleLoading(false)
   }
@@ -353,7 +381,19 @@ export default function Playground(props: Props) {
           )}
         </div>
         <div className="title">
-          <h1>{`${library.toLowerCase()} Playground`}</h1>
+          <div>
+            <h1>{`${library.toLowerCase()} Playground`}</h1>
+            {library !== LIB.WEB3 && (
+              <button onClick={() => handleChangeLibrary(LIB.WEB3)}>
+                Switch to Web3
+              </button>
+            )}
+            {library !== LIB.ETHERS && (
+              <button onClick={() => handleChangeLibrary(LIB.ETHERS)}>
+                Switch to Ethers
+              </button>
+            )}
+          </div>
           <div className="menu">
             <a
               target="_blank"
@@ -362,10 +402,6 @@ export default function Playground(props: Props) {
             >
               {'How it works 👨‍💻'}
             </a>
-            <button onClick={() => handleChangeLibrary(LIB.WEB3)}>Web3</button>
-            <button onClick={() => handleChangeLibrary(LIB.ETHERS)}>
-              Ethers
-            </button>
           </div>
         </div>
         {error && (

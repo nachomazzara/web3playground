@@ -1,6 +1,8 @@
 import { ReactElement } from 'react'
 import { Contract } from 'web3-eth-contract/types'
-import { Contract as EthersContract } from 'ethers'
+import { AbiItem } from 'web3-utils'
+
+import { Contract as EthersContract, ethers } from 'ethers'
 
 export type Props = {
   fileId?: string
@@ -15,6 +17,7 @@ export type SelectedContract = {
   address: string
   name: string
   isProxy: boolean
+  abi: AbiItem | ethers.ContractInterface
   error?: SelectedContractError
 }
 
