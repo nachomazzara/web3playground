@@ -55,6 +55,7 @@ export default function Playground(props: Props) {
       let instance = null
       let error: SelectedContractError = null
 
+      try {
       if (contract.isProxy) {
         const implementationAddress = await findABIForProxy(contract.address)
         if (implementationAddress) {
@@ -67,6 +68,9 @@ export default function Playground(props: Props) {
       } else {
         instance = await getContract(contract.address, library)
       }
+    } catch (e) {
+      console.warn(e.message)
+    }
 
       if (!instance) {
         error = (
