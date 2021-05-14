@@ -35,7 +35,11 @@ export function saveFile(file: File) {
 
   saveFiles.push(file)
 
-  window.localStorage.setItem(KEY_FILES, JSON.stringify(saveFiles))
+  try {
+    window.localStorage.setItem(KEY_FILES, JSON.stringify(saveFiles))
+  } catch (e) {
+    console.warn(e.message)
+  }
 }
 
 export function getFiles(): File[] {
@@ -48,7 +52,11 @@ export function removeFile(file: File) {
 
   const files = saveFiles.filter(savedFile => savedFile.id !== file.id)
 
-  window.localStorage.setItem(KEY_FILES, JSON.stringify(files))
+  try {
+    window.localStorage.setItem(KEY_FILES, JSON.stringify(files))
+  } catch (e) {
+    console.warn(e.message)
+  }
 }
 
 export function renameFile(file: File) {
@@ -56,7 +64,11 @@ export function renameFile(file: File) {
   for (let i = 0; i < saveFiles.length; i++) {
     if (saveFiles[i].id === file.id) {
       saveFiles[i].name = file.name
-      window.localStorage.setItem(KEY_FILES, JSON.stringify(saveFiles))
+      try {
+        window.localStorage.setItem(KEY_FILES, JSON.stringify(saveFiles))
+      } catch (e) {
+        console.warn(e.message)
+      }
       return
     }
   }
@@ -69,7 +81,11 @@ export function getFileFromHash(hash: string) {
 
 // Network
 export function saveLastUsedNetwork(networkId: number) {
-  window.localStorage.setItem(KEY_NETWORK, networkId.toString())
+  try {
+    window.localStorage.setItem(KEY_NETWORK, networkId.toString())
+  } catch (e) {
+    console.warn(e.message)
+  }
 }
 
 export function getLastUsedNetwork(): number {
@@ -79,8 +95,11 @@ export function getLastUsedNetwork(): number {
 
 // Contract
 export function saveLastUsedContracts(contracts: LastUsedContracts) {
-  window.localStorage.setItem(KEY_CONTRACTS, JSON.stringify(contracts))
-
+  try {
+    window.localStorage.setItem(KEY_CONTRACTS, JSON.stringify(contracts))
+  } catch (e) {
+    console.warn(e.message)
+  }
   const networkId = getNetworkId()
   if (networkId) {
     saveLastUsedNetwork(networkId)
@@ -94,8 +113,12 @@ export function getLastUsedContracts(): LastUsedContracts | null {
 
 // Code
 export function saveLastUsedCode(code: string) {
-  window.localStorage.setItem(KEY_CODE, code)
-  restoreBeforeUnload()
+  try {
+    window.localStorage.setItem(KEY_CODE, code)
+    restoreBeforeUnload()
+  } catch (e) {
+    console.warn(e.message)
+  }
 }
 
 export function getLastUsedCode(): string | null {
@@ -105,8 +128,12 @@ export function getLastUsedCode(): string | null {
 
 // Library
 export function saveLastUsedLibrary(library: LIB) {
-  window.localStorage.setItem(KEY_LIBRARY, library)
-  restoreBeforeUnload()
+  try {
+    window.localStorage.setItem(KEY_LIBRARY, library)
+    restoreBeforeUnload()
+  } catch (e) {
+    console.warn(e.message)
+  }
 }
 
 export function getLastUsedLibrary(): LIB {
