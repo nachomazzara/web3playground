@@ -51,8 +51,24 @@
   background-color: #ebb33f;
 }
 
-.Playground .header .network p.goerli :before {
+.Playground .header .network p.goerli:before {
   background-color: #3099f2;
+}
+
+.Playground .header .network p.bsc:before {
+  background-color: #ecf230;
+}
+
+.Playground .header .network p.bsc-testnet:before {
+  background-color: #ecf230;
+}
+
+.Playground .header .network p.matic:before {
+  background-color: #6966cb;
+}
+
+.Playground .header .network p.mumbai:before {
+  background-color: #6966cb;
 }
 
 .Playground .header .title {

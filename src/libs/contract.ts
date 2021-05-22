@@ -3,7 +3,7 @@ import { Contract } from 'web3-eth-contract/types'
 import { AbiItem } from 'web3-utils'
 import ethers, { Contract as EthersContract } from 'ethers'
 
-import { getWeb3Instance, getAPI } from './web3'
+import { getWeb3Instance, getAPI, getAPIKey } from './web3'
 import { SelectedContracts, ABI } from 'components/Playground/types'
 import { LIB } from '../constants'
 
@@ -40,7 +40,7 @@ export async function getContract(
   abi: AbiItem | ethers.ethers.ContractInterface
 } | null> {
   const res = await fetch(
-    `${getAPI()}?module=contract&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=getabi&address=${address}`
+    `${getAPI()}?module=contract&apikey=${getAPIKey()}&action=getabi&address=${address}`
   )
   const abi = await res.json()
 
@@ -103,7 +103,7 @@ export async function findABIForProxy(
   proxyAddress: string
 ): Promise<string | undefined> {
   const web3 = await getWeb3Instance()
-  const api = `${getAPI()}?module=logs&action=getLogs&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&fromBlock=0&toBlock=latest&limit=1&address=${proxyAddress}&topic0=`
+  const api = `${getAPI()}?module=logs&action=getLogs&apikey=${getAPIKey()}&fromBlock=0&toBlock=latest&limit=1&address=${proxyAddress}&topic0=`
 
   let address
   for (let { topic, indexed, dataIndex } of TOPICS_FOR_PROXYS) {
@@ -153,7 +153,7 @@ async function getAddressByStorageSlot(
   for (const storage of SLOTS_FOR_PROXYS) {
     try {
       const res = await fetch(
-        `${getAPI()}?module=proxy&action=eth_getStorageAt&address=${proxyAddress}&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&position=${storage}&tag=latest`
+        `${getAPI()}?module=proxy&action=eth_getStorageAt&address=${proxyAddress}&apikey=${getAPIKey()}&position=${storage}&tag=latest`
       )
       const data = (await res.json()).result
 
@@ -176,7 +176,7 @@ export async function getAddressByMinimalProxy(
   proxyAddress: string
 ): Promise<string | undefined> {
   const res = await fetch(
-    `${getAPI()}?module=proxy&apikey=39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD&action=eth_getCode&address=${proxyAddress}`
+    `${getAPI()}?module=proxy&apikey=${getAPIKey()}&action=eth_getCode&address=${proxyAddress}`
   )
   const data = (await res.json()).result
 

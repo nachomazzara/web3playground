@@ -14,6 +14,22 @@ export interface EthereumWindow {
   }
 }
 
+export const CHAINS = {
+  ETHEREUM_MAINNET: { value: 'mainnet', label: 'Ethereum Mainnet', id: 1 },
+  ETHEREUM_ROPSTEN: { value: 'ropsten', label: 'Ropsten Testnet', id: 3 },
+  ETHEREUM_RINKEBY: { value: 'rinkeby', label: 'Rinkeby Testnet', id: 4 },
+  ETHEREUM_GOERLI: { value: 'goerli', label: 'Goerli Testnet', id: 5 },
+  ETHEREUM_KOVAN: { value: 'kovan', label: 'Kovan Testnet', id: 42 },
+  BSC_MAINNET: { value: 'bsc', label: 'Binance Smart Chain Mainnet', id: 56 },
+  BSC_TESTNET: {
+    value: 'bsc-testnet',
+    label: 'Binance Smart Chain Testnet',
+    id: 97
+  },
+  MATIC_MAINNET: { value: 'matic', label: 'Matic Mainnet', id: 137 },
+  MATIC_MUMBAI: { value: 'mumbai', label: 'Matic Mumbai', id: 80001 }
+}
+
 const { ethereum } = window as EthereumWindow
 
 let web3: Web3
@@ -44,13 +60,7 @@ export async function getWeb3Instance(): Promise<Web3> {
 }
 
 export function getChains() {
-  return [
-    { value: 'mainnet', label: 'Ethereum Mainnet', id: 1 },
-    { value: 'ropsten', label: 'Ropsten Testnet', id: 3 },
-    { value: 'kovan', label: 'Kovan Testnet', id: 42 },
-    { value: 'rinkeby', label: 'Rinkeby Testnet', id: 4 },
-    { value: 'goerli', label: 'Goerli Testnet', id: 5 }
-  ]
+  return Object.values(CHAINS)
 }
 
 export function getNetworkNameById(id: number): string {
@@ -67,10 +77,61 @@ export function getNetworkId() {
   return chainId
 }
 
+function isEthereumChain() {
+  return (
+    chainId === CHAINS.ETHEREUM_MAINNET.id ||
+    chainId === CHAINS.ETHEREUM_ROPSTEN.id ||
+    chainId === CHAINS.ETHEREUM_KOVAN.id ||
+    chainId === CHAINS.ETHEREUM_GOERLI.id ||
+    chainId === CHAINS.ETHEREUM_RINKEBY.id
+  )
+}
+
+function isMaticChain() {
+  return (
+    chainId === CHAINS.MATIC_MAINNET.id || chainId === CHAINS.MATIC_MUMBAI.id
+  )
+}
+
+function isBSCChain() {
+  return chainId === CHAINS.BSC_MAINNET.id || chainId === CHAINS.BSC_TESTNET.id
+}
+
+export function getAPIKey() {
+  if (isEthereumChain()) {
+    return '39MIMBN2J9SFTJW1RKQPYJI89BAPZEVJVD'
+  }
+  if (isBSCChain()) {
+    return 'XUB8PMY81UWB8TFVIN8A36SZUG1Q7H4ZD5'
+  }
+  if (isMaticChain()) {
+    return ''
+  }
+
+  console.warn(`Could not find any API Key for the chain: ${chainId}`)
+
+  return ''
+}
+
 export function getAPI(): string {
-  const network = getNetworkNameById(chainId)
-  return `https://api${network !== 'mainnet' ? `-${network}` : ''
-    }.etherscan.io/api`
+  if (isEthereumChain()) {
+    const network = getNetworkNameById(chainId)
+    return `https://api${network !== 'mainnet' ? `-${network}` : ''
+      }.etherscan.io/api`
+  }
+
+  if (isBSCChain()) {
+    return `https://api${chainId === CHAINS.BSC_TESTNET.id ? '-testnet' : ''
+      }.bscscan.com/api`
+  }
+
+  if (isMaticChain()) {
+    return ''
+  }
+
+  console.warn(`Could not find any API for the chain: ${chainId}`)
+
+  return ''
 }
 
 export function useNetwork() {
