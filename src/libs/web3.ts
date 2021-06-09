@@ -126,7 +126,7 @@ export function getAPI(): string {
   }
 
   if (isMaticChain()) {
-    return `https://api${chainId === CHAINS.BSC_TESTNET.id ? '-testnet' : ''
+    return `https://api${chainId === CHAINS.MATIC_MUMBAI.id ? '-testnet' : ''
       }.polygonscan.com/api`
   }
 
