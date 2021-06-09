@@ -126,7 +126,8 @@ export function getAPI(): string {
   }
 
   if (isMaticChain()) {
-    return ''
+    return `https://api${chainId === CHAINS.BSC_TESTNET.id ? '-testnet' : ''
+      }.polygonscan.com/api`
   }
 
   console.warn(`Could not find any API for the chain: ${chainId}`)
