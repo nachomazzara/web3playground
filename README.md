@@ -2,7 +2,7 @@
 
 Test your contracts by creating your custom code snippets by using [Web3 1.X.X](https://github.com/ethereum/web3.js/) or [Ethers 5.0.X](https://github.com/ethers-io/ethers.js) ready to be used and automagically typed.
 
-### [Try it](https://web3playground.io)
+### [Try it](https://web3playground.vercel.app)
 
 ## Table of content
 
